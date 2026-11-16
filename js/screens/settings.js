@@ -1,0 +1,109 @@
+/*
+ * screens/settings.js
+ * settings, grouped like a phone's settings app. your profile is first.
+ *   #/settings
+ */
+
+function settingsScreen() {
+  const s = data.settings;
+  const user = data.user;
+
+  return `<section class="page">
+    ${pageHead("Settings")}
+
+    <h2>${icon("user", 20)} Profile</h2>
+    <div class="card group">
+      <div class="row">
+        ${avatar(user, 60)}
+        <span class="list-text"><strong>${safe(user.name)}</strong><span class="muted">${safe(user.email)}</span></span>
+        ${btn("Edit Picture", { size: "small", icon: "palette", onclick: "openAvatarPicker()" })}
+      </div>
+      <label class="row">
+        <span>Display Name</span>
+        <input class="input short" value="${safe(user.name)}" maxlength="40" onchange="setName(this.value)">
+      </label>
+      <div class="row">${btn("Sign Out", { kind: "danger", onclick: "askToSignOut()" })}</div>
+    </div>
+
+    <h2>${icon("palette", 20)} Appearance</h2>
+    <div class="card group">
+      <div class="row">
+        <span class="list-text"><strong>Accent Colour</strong><span class="muted small">Used for buttons, tabs and selected things</span></span>
+        ${swatches(s.accent, "setAccent")}
+      </div>
+      <div class="row">
+        <span class="list-text"><strong>Theme</strong><span class="muted small">Auto follows your device</span></span>
+        ${segmented([{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "auto", label: "Auto" }],
+          s.theme, v => `setTheme('${v}')`, "Theme")}
+      </div>
+    </div>
+
+    <h2>${icon("location", 20)} Location</h2>
+    <div class="card group">
+      ${settingRow("useLocation", "Location Services", "Pretend GPS. Puts you at the New Science Building.")}
+      ${s.useLocation ? "" : `<label class="row">
+        <span>I'm Starting From</span>
+        <select class="input short" onchange="setStartPlace(this.value)">
+          ${PLACES.map(place => `<option value="${place.id}" ${s.startPlace === place.id ? "selected" : ""}>${place.name}</option>`).join("")}
+        </select>
+      </label>`}
+    </div>
+
+    <h2>${icon("eye", 20)} Accessibility</h2>
+    <div class="card group">
+      ${settingRow("largeText", "Larger Text", "Makes all the text in the app bigger.")}
+      ${settingRow("highContrast", "High Contrast", "Darker text and stronger borders.")}
+      ${settingRow("reduceMotion", "Reduce Motion", "Turns off sliding and pulsing animations.")}
+    </div>
+
+    <h2>${icon("bell", 20)} Notifications</h2>
+    <div class="card group">
+      ${settingRow("alerts", "Filling-Up Alerts", "Warns you on the way if a space gets busy, with a quieter one nearby.")}
+    </div>
+
+    <h2>${icon("info", 20)} About</h2>
+    <div class="card group">
+      <div class="row"><span>Version</span><span class="muted">1.0, hi-fi prototype</span></div>
+      <div class="row"><span>Made By</span><span class="muted">Group 17, CMP-6039A</span></div>
+      <div class="row"><span>Map Data</span><span class="muted">© OpenStreetMap contributors</span></div>
+      <div class="row"><span>Space Data</span><span class="muted">Made up for this prototype</span></div>
+      <a class="row link-row" href="#/design"><span>Design System</span>${icon("next", 18)}</a>
+      <div class="row">${btn("Reset All App Data", { kind: "danger", onclick: "askToReset()" })}</div>
+    </div>
+  </section>`;
+}
+
+// one on/off setting: a title, a description and a switch
+function settingRow(name, title, description) {
+  return `<div class="row">
+    <span class="list-text"><strong>${title}</strong><span class="muted small">${description}</span></span>
+    ${switchToggle(data.settings[name], title, `toggleSetting('${name}')`)}
+  </div>`;
+}
+
+// a row of colour circles to pick from. action is the function to call
+function swatches(current, action) {
+  return `<div class="swatches" role="group" aria-label="Colours">
+    ${ACCENTS.map(colour => `<button class="swatch ${current === colour.id ? "on" : ""}" style="background:${colour.hex}"
+      aria-label="${colour.label}" aria-pressed="${current === colour.id}" onclick="${action}('${colour.id}')">
+      ${current === colour.id ? icon("check", 16) : ""}</button>`).join("")}
+  </div>`;
+}
+
+// the modal for picking a profile picture and its colour
+function avatarModal() {
+  const user = data.user;
+  return modalFrame({
+    title: "Edit Picture",
+    body: `<div class="avatar-preview">${avatar(user, 84)}</div>
+      <h3>Picture</h3>
+      <div class="avatar-grid">
+        ${AVATAR_ICONS.map(name => `<button class="avatar-option ${(user.avatar || "initials") === name ? "on" : ""}"
+          aria-label="${name}" aria-pressed="${(user.avatar || "initials") === name}" onclick="setAvatar('${name}')">
+          ${name === "initials" ? `<strong>${initials(user.name)}</strong>` : icon(name, 24)}</button>`).join("")}
+      </div>
+      <h3>Colour</h3>
+      ${swatches(user.avatarColour || "teal", "setAvatarColour")}`,
+    footer: btn("Done", { kind: "primary", onclick: "closeModal()" }),
+  });
+}
