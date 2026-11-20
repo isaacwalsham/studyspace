@@ -1,20 +1,7 @@
-/*
- * components.js
- * the building blocks every screen is made from: buttons, chips, switches,
- * tags, empty states, the filter and sort toolbar, modals, menus, toasts and
- * banners. screens call these instead of writing their own html, so the
- * whole app looks and behaves the same everywhere.
- * you can see every one of them on the design system page, #/design.
- *
- * writing style: titles, buttons and labels use title case, e.g. "Book a Room".
- * sentences, like descriptions and messages, use normal sentence case.
- */
+// buttons
 
-// ---------------------------------------------------------------- buttons
-
-// one button. kind is "primary", "secondary", "danger", "danger-solid" or "ghost".
-// give it href to make it a link, or onclick to run a function
-//   btn("Directions", { kind: "primary", icon: "walk", href: "#/find/lib2/go" })
+// kind: primary, secondary, danger, danger-solid or ghost.
+// href makes it a link, onclick runs a function
 function btn(label, { kind = "secondary", icon: iconName, size, href, onclick, disabled, wide, ariaLabel, id } = {}) {
   const classes = ["btn", `btn-${kind}`, size === "small" ? "btn-small" : "", wide ? "btn-wide" : "", label ? "" : "btn-icon"].join(" ");
   const inside = `${iconName ? icon(iconName, size === "small" ? 16 : 18) : ""}${label ? `<span>${label}</span>` : ""}`;
@@ -23,25 +10,23 @@ function btn(label, { kind = "secondary", icon: iconName, size, href, onclick, d
   return `<button class="${classes}" ${onclick ? `onclick="${onclick}"` : ""} ${disabled ? "disabled" : ""} ${extra}>${inside}</button>`;
 }
 
-// ---------------------------------------------------------------- small pieces
+// small pieces
 
-// a round number badge, e.g. the count next to "Best Matches"
+// count badge
 function badge(count, strong = false) {
   return `<span class="badge ${strong ? "badge-strong" : ""}">${count}</span>`;
 }
 
-// the busyness word on its colour, e.g. "Quiet" on green
 function busyTag(space, big = false) {
   const label = busyLabel(space);
   return `<span class="tag tag-${label.colour} ${big ? "tag-big" : ""}">${label.text}</span>`;
 }
 
-// the match score as a small pill, e.g. "86/100"
 function scoreTag(space) {
   return `<span class="score" title="Match score out of 100">${matchScore(space)}<small>/100</small></span>`;
 }
 
-// a pill you can switch on and off, e.g. a filter
+// toggle pill, used for filters
 function chip(label, { iconName, on = false, onclick, removable = false } = {}) {
   return `<button class="chip ${on ? "chip-on" : ""}" aria-pressed="${on}" onclick="${onclick}">
     ${on && !removable ? icon("check", 16) : iconName ? icon(iconName, 16) : ""}
@@ -49,8 +34,7 @@ function chip(label, { iconName, on = false, onclick, removable = false } = {}) 
   </button>`;
 }
 
-// a row of joined buttons where one is picked, e.g. walking distance.
-// options is a list of { value, label }, and action(value) gives the onclick
+// joined buttons, one picked. action(value) returns the onclick
 function segmented(options, current, action, ariaLabel = "") {
   return `<div class="segmented" role="group" aria-label="${ariaLabel}">
     ${options.map(option => {
@@ -60,17 +44,15 @@ function segmented(options, current, action, ariaLabel = "") {
   </div>`;
 }
 
-// an on/off switch, like on a phone
 function switchToggle(on, label, onclick) {
   return `<button class="switch ${on ? "on" : ""}" role="switch" aria-checked="${on}" aria-label="${label}" onclick="${onclick}"><span></span></button>`;
 }
 
-// the heading at the top of a normal page
 function pageHead(title, subtitle = "") {
   return `<header class="page-head"><h1>${title}</h1>${subtitle ? `<p class="muted">${subtitle}</p>` : ""}</header>`;
 }
 
-// shown when a list has nothing in it, with buttons to get out of it
+// empty list message with ways out
 function emptyState({ iconName = "info", title, text = "", actions = "" }) {
   return `<div class="empty">
     <span class="empty-icon">${icon(iconName, 26)}</span>
@@ -80,28 +62,24 @@ function emptyState({ iconName = "info", title, text = "", actions = "" }) {
   </div>`;
 }
 
-// a row of small pills, each an icon and a few words, e.g. "Library", "Fits 6", "9 min walk".
-// used for the key facts about a space, so they never look like a plain line of text
-//   facts([["building", "Library"], ["people", "Fits 6"]])
+// small icon + text pills for key facts
 function facts(items) {
   return `<span class="facts">${items.map(([iconName, text]) => `<span>${icon(iconName, 15)}${text}</span>`).join("")}</span>`;
 }
 
-// a coloured box with an icon and a message. kind is "good", "warn" or "info"
+// kind is good, warn or info
 function notice(kind, text) {
   return `<div class="notice notice-${kind}">${icon(kind === "good" ? "check" : kind === "warn" ? "alert" : "info", 18)}<span>${text}</span></div>`;
 }
 
-// ---------------------------------------------------------------- filter and sort toolbar
+// filter and sort toolbar
 
-// the filters and sort buttons side by side, then the switched-on filters
-// underneath. listName is "find" or "book"
+// filter and sort buttons, active filters underneath
 function toolbar(listName) {
   return `${toolbarButtons(listName)}${activeFilters(listName)}`;
 }
 
-// just the two buttons: filters, which opens a modal, and sort, which opens a menu.
-// lab 7 fix: the filters button always says how many filters are on
+// lab 7 fix: the filters button shows how many are on
 function toolbarButtons(listName) {
   const prefs = data[listName];
   const sort = SORTS.find(s => s.id === prefs.sort);
@@ -119,8 +97,7 @@ function toolbarButtons(listName) {
   </div>`;
 }
 
-// every filter that's on, as a chip you can tap to remove, plus the walking distance.
-// lab 7 fix: you can always see exactly which filters are on
+// lab 7 fix: active filters are always visible, tap one to remove it
 function activeFilters(listName) {
   const prefs = data[listName];
   const walk = WALK_OPTIONS.find(option => option.min === prefs.maxWalk);
@@ -133,7 +110,7 @@ function activeFilters(listName) {
   </div>`;
 }
 
-// the drop-down list of sort choices
+// sort dropdown
 function sortMenu(listName) {
   const prefs = data[listName];
   return `<div class="menu" role="menu">
@@ -145,8 +122,7 @@ function sortMenu(listName) {
   </div>`;
 }
 
-// the inside of the filters modal. changes apply straight away, and the
-// button at the bottom says how many results there now are
+// filters apply straight away, the button shows the result count
 function filterModal(listName) {
   const prefs = data[listName];
   const pool = SPACES.filter(space => space.kind === (listName === "book" ? "room" : "open"))
@@ -174,7 +150,7 @@ function filterModal(listName) {
   });
 }
 
-// how a space's match score is worked out, as bars
+// score breakdown bars
 function scoreBreakdown(space) {
   const parts = scoreParts(space);
   return `<details class="score-box">
@@ -190,10 +166,9 @@ function scoreBreakdown(space) {
   </details>`;
 }
 
-// ---------------------------------------------------------------- modals
+// modals
 
-// every popup in the app uses the same frame: a title, a close button,
-// the body, and buttons at the bottom
+// shared frame for every popup
 function modalFrame({ title, body, footer = "", iconName }) {
   return `<header class="modal-head">
       ${iconName ? `<span class="modal-icon">${icon(iconName, 22)}</span>` : ""}
@@ -204,14 +179,12 @@ function modalFrame({ title, body, footer = "", iconName }) {
     ${footer ? `<footer class="modal-foot">${footer}</footer>` : ""}`;
 }
 
-// opens the modal. draw is a function that returns the html inside it.
-// keeping the function, not the html, means the modal can redraw itself
-// whenever the rest of the screen redraws, so it's never out of date
+// draw is a function, not html, so the modal redraws with the page
 function openModal(draw) {
   ui.modal = draw;
   refreshModal();
   $("#modal").hidden = false;
-  // move keyboard focus into the modal, for keyboard and screen reader users
+  // focus the modal for keyboard users
   const first = $("#modal-box").querySelector("button, a, input, select");
   if (first) first.focus();
 }
@@ -226,9 +199,7 @@ function closeModal() {
   ui.report = null;
 }
 
-// a yes/no question in the shared modal, used instead of the browser's
-// plain confirm box so it matches the app. onConfirm runs if they say yes.
-// cancelLabel is the safe choice, so it should say what it keeps
+// our own confirm box. cancelLabel should say what it keeps
 function confirmModal({ title, text, confirmLabel = "Confirm", cancelLabel = "Cancel", danger = false, onConfirm }) {
   ui.modalAction = onConfirm;
   openModal(() => modalFrame({
@@ -246,15 +217,14 @@ function runModalAction() {
   if (action) action();
 }
 
-// ---------------------------------------------------------------- menus
+// menus
 
-// opens or closes a drop-down menu, e.g. the sort menu on find
 function toggleMenu(name) {
   ui.menu = ui.menu === name ? null : name;
   render();
 }
 
-// clicking anywhere outside an open menu closes it
+// click outside to close menus
 document.addEventListener("click", event => {
   if (ui.menu && !event.target.closest(".menu-wrap")) {
     ui.menu = null;
@@ -262,10 +232,9 @@ document.addEventListener("click", event => {
   }
 });
 
-// ---------------------------------------------------------------- toasts and banners
+// toasts and banners
 
-// a small message at the bottom. if undo is given, it shows an undo button
-// and stays until closed. otherwise it hides itself after 4 seconds
+// with undo it stays until closed, otherwise hides after 4s
 let toastTimer;
 function showToast(message, undo) {
   const toast = $("#toast");
@@ -286,7 +255,7 @@ function hideToast() {
   $("#toast").hidden = true;
 }
 
-// a banner at the top for live alerts. tapping it opens the given address
+// live alert banner, tapping it opens the address
 function showBanner(title, text, address) {
   const banner = $("#banner");
   banner.innerHTML = `<button class="banner-main" onclick="hideBanner(); go('${address}')">

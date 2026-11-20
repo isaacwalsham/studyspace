@@ -1,40 +1,32 @@
-/*
- * store.js
- * remembers the user's data in the browser with localStorage, so sign-in,
- * filters, bookings, reports and settings are still there after a refresh.
- * there is no server, so nothing leaves the user's own browser.
- */
-
 const STORE_KEY = "studyspace-v2";
 
 // what a brand new user starts with
 function freshData() {
   return {
-    user: null,        // set when someone signs in, e.g. { name, email, avatar, avatarColour }
-    setupDone: false,  // true once they've picked their needs after sign-in
+    user: null,        // set on sign in
+    setupDone: false,  // picked their needs after sign in
 
-    // the find page and the book a room page each keep their own filters,
-    // because what you need from a café isn't what you need from a room
+    // find and book a room keep separate filters
     find: { filters: [], maxWalk: 10, sort: "best" },
     book: { filters: [], maxWalk: 60, sort: "best", groupSize: 2, day: 0 },
 
-    bookings: pastBookings(), // a couple of old bookings, so the history isn't empty
-    reports: {},              // busyness reports, keyed by space id
+    bookings: pastBookings(),
+    reports: {},              // by space id
 
     settings: {
       accent: "teal",        // an id from ACCENTS
-      theme: "light",        // "light", "dark" or "auto", which follows the device
-      useLocation: true,     // pretend gps on, so the user is at GPS_PLACE
-      startPlace: "nsb",     // where they are when location is off
+      theme: "light",        // light, dark or auto
+      useLocation: true,     // fake gps
+      startPlace: "nsb",     // used when location is off
       largeText: false,
       highContrast: false,
       reduceMotion: false,
-      alerts: true,          // "filling up" alerts while walking
+      alerts: true,          // filling up alerts
     },
   };
 }
 
-// two made-up bookings from last week, so my bookings has some history
+// two fake past bookings so the past list isn't empty
 function pastBookings() {
   return [
     { id: "past1", roomId: "room020", date: dateFromToday(-7), slot: "14:00", people: 4 },
@@ -42,8 +34,7 @@ function pastBookings() {
   ];
 }
 
-// the date a number of days from today, as text like "2026-11-16".
-// text dates sort in the right order, which keeps comparing them simple
+// date n days from today as "2026-11-16", which sorts properly as text
 function dateFromToday(days) {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -52,14 +43,14 @@ function dateFromToday(days) {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-// loads the saved data, or starts fresh if there's nothing saved yet
+// saved data, or fresh if there's none
 function loadData() {
   const fresh = freshData();
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY));
     if (!saved) return fresh;
 
-    // merging with fresh data means any newer fields still get a default value
+    // merge so new fields get defaults
     return {
       ...fresh, ...saved,
       find: { ...fresh.find, ...saved.find },
@@ -67,19 +58,18 @@ function loadData() {
       settings: { ...fresh.settings, ...saved.settings },
     };
   } catch (error) {
-    // private browsing or blocked storage, so just use fresh data
+    // storage blocked, start fresh
     return fresh;
   }
 }
 
-// saves the current data. called after every change the user makes
+// called after every change
 function saveData() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(data));
   } catch (error) {
-    // storage is blocked, so the app still works but forgets on refresh
+    // storage blocked, it just won't remember
   }
 }
 
-// the one copy of the user's data the whole app reads and changes
 let data = loadData();

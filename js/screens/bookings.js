@@ -1,9 +1,3 @@
-/*
- * screens/bookings.js
- * my bookings: what's coming up, and what's already happened.
- *   #/bookings
- */
-
 function bookingsScreen() {
   const byTime = (a, b) => (a.date + a.slot).localeCompare(b.date + b.slot);
   const upcoming = data.bookings.filter(b => !isPast(b)).sort(byTime);
@@ -25,7 +19,7 @@ function bookingsScreen() {
   </section>`;
 }
 
-// one booking, with the date in a little calendar block on the left
+// booking card with a date block
 function bookingCard(booking, isOld) {
   const room = findSpace(booking.roomId);
   const date = new Date(booking.date + "T12:00");

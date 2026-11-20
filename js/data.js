@@ -1,16 +1,6 @@
-/*
- * data.js
- * all the made-up data the prototype uses. in a real app this would come
- * from a server, room sensors and other students' reports.
- * x and y are metres on the campus map in map-data.js. each space sits on
- * its real building, using building outlines from openstreetmap.
- * walk times are worked out from x and y, in helpers.js.
- */
+// filters
 
-// ---------------------------------------------------------------- filters
-
-// the needs a user can filter by. "test" checks if a space meets that need.
-// forRooms says if it makes sense when booking a room
+// test checks a space. forRooms means it shows on book a room too
 const FILTERS = [
   { id: "quiet",       label: "Quiet",                   icon: "quiet",   forRooms: true,  test: s => s.noise <= 2 },
   { id: "foodAllowed", label: "Food Allowed",            icon: "food",    forRooms: false, test: s => s.foodAllowed },
@@ -23,8 +13,7 @@ const FILTERS = [
   { id: "access",      label: "Step-Free Entrance",      icon: "access",  forRooms: true,  test: s => s.accessible },
 ];
 
-// the busyness levels someone can report, from empty to full.
-// busy is a number from 0, empty, to 1, completely full
+// busy goes from 0 empty to 1 full
 const LEVELS = [
   { label: "Empty",      busy: 0.1 },
   { label: "Quiet",      busy: 0.3 },
@@ -33,9 +22,9 @@ const LEVELS = [
   { label: "Full",       busy: 0.97 },
 ];
 
-// ---------------------------------------------------------------- open study spaces
+// open study spaces
 
-// open seating: you just turn up. noise goes from 1, silent, to 5, loud
+// noise is 1 silent to 5 loud
 const SPACES = [
   // library
   { id: "lib2", name: "Silent Study, Floor 2", building: "Library", kind: "open", x: 735, y: 458,
@@ -117,9 +106,9 @@ const SPACES = [
     lighting: "Bright", footfall: "Medium", screen: false, whiteboard: false, accessible: true,
     hours: "Open until 21:00", about: "Café overlooking the pool. A long walk, but almost always has seats." },
 
-  // ---------------------------------------------------------------- bookable rooms
+  // bookable rooms
 
-  // rooms you reserve for an hour. capacity is the most people a room fits
+  // booked by the hour
   { id: "pods", name: "Study Pod", building: "Library", kind: "room", capacity: 1, x: 748, y: 476,
     busy: 0.6, seats: 10, updatedMin: 6, noise: 1, sockets: true, lighting: "Soft", footfall: "Low",
     screen: false, whiteboard: false, accessible: true, hours: "Bookable 09:00 to 21:00",
@@ -170,10 +159,9 @@ const SPACES = [
     about: "Classic seminar room with a big table. Bring a charged laptop." },
 ];
 
-// ---------------------------------------------------------------- places on the map
+// places on the map
 
-// building names printed on the map. "major" ones always show, the rest only
-// when zoomed in, so the map doesn't get cluttered
+// map labels. minor ones only show zoomed in
 const LANDMARKS = [
   { name: "New Science Building", x: 215, y: 375, major: true },
   { name: "Julian Study Centre", x: 270, y: 300, major: true },
@@ -191,8 +179,7 @@ const LANDMARKS = [
   { name: "Norfolk Terrace", x: 512, y: 505 },
 ];
 
-// places the user can be. location services in settings are pretend, so
-// "on" puts the user at the new science building, and "off" lets them pick one
+// start points for the fake location setting
 const PLACES = [
   { id: "nsb",      name: "New Science Building", x: 216, y: 343 },
   { id: "jsc",      name: "Julian Study Centre",  x: 280, y: 300 },
@@ -206,12 +193,12 @@ const PLACES = [
   { id: "sport",    name: "Sportspark",           x: 752, y: 110 },
 ];
 
-// where the pretend gps says the user is
+// fake gps position
 const GPS_PLACE = "nsb";
 
-// ---------------------------------------------------------------- choices
+// choices
 
-// the walking distance choices. "any" is just a very big number
+// "any" is just a big number
 const WALK_OPTIONS = [
   { min: 5,  label: "5 min" },
   { min: 10, label: "10 min" },
@@ -219,8 +206,7 @@ const WALK_OPTIONS = [
   { min: 60, label: "Any" },
 ];
 
-// the ways a results list can be sorted. rooms say "most free times"
-// instead of "least busy", because that's what matters when booking
+// rooms sort by free times instead of busyness
 const SORTS = [
   { id: "best",    label: "Best Match",  roomLabel: "Best Match" },
   { id: "nearest", label: "Nearest",     roomLabel: "Nearest" },
@@ -230,8 +216,7 @@ const SORTS = [
 // booking times, one hour each
 const SLOTS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
 
-// the accent colours the user can pick in settings. the css has the matching
-// shades for each one, under html[data-accent="..."]
+// accent options, the shades are in the css
 const ACCENTS = [
   { id: "teal",   label: "Teal",   hex: "#0b7a75" },
   { id: "blue",   label: "Blue",   hex: "#2b6cb0" },
@@ -241,5 +226,5 @@ const ACCENTS = [
   { id: "green",  label: "Green",  hex: "#2f855a" },
 ];
 
-// the pictures a user can pick for their profile, plus their initials
+// profile picture options
 const AVATAR_ICONS = ["initials", "book", "coffee", "laptop", "headphones", "star", "leaf", "moon"];

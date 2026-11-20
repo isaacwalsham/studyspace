@@ -1,40 +1,19 @@
-/*
- * app.js
- * the brain of the app. it decides which screen to show, and holds every
- * function the buttons call, like signIn, toggleFilter and askToBook.
- *
- * how a click works:
- *   1. a button runs one of the functions below, or changes the address
- *   2. that changes data, which is saved, or ui, which isn't
- *   3. render redraws the screen from scratch
- *
- * the addresses:
- *   #/find              the map and results
- *   #/find/lib2         the same, with lib2's card open on the map
- *   #/find/lib2/go      directions to lib2
- *   #/book              book a room
- *   #/book/room020      book a room, with room 0.20's panel open
- *   #/bookings          my bookings
- *   #/settings          settings and profile
- *   #/design            the design system page
- */
-
-// things that only matter while the page is open, so they aren't saved
+// screen state, not saved
 const ui = {
   findView: "list",      // on phones, find shows either the list or the map
-  map: { ...HOME_VIEW }, // the part of the campus on screen, see map.js
-  shownSpace: null,      // the space the map last moved to, so it only moves once
-  slot: null,            // the booking time picked, e.g. "14:00"
-  menu: null,            // the drop-down menu that's open, if any
-  modal: null,           // a function that draws the open modal, see components.js
-  modalAction: null,     // what a confirm modal does if you say yes
-  report: null,          // the busyness report, e.g. { id, level, done, before }
-  walk: null,            // the pretend walk, e.g. { id, progress, timer }
-  last: {},              // the screen and id drawn last time, e.g. { screen: "book", id: "room020" }
-  entering: false,       // true when a card or panel has just opened, so it animates in once
+  map: { ...HOME_VIEW }, // the visible part of the map
+  shownSpace: null,      // so the map only pans to a space once
+  slot: null,            // picked booking time
+  menu: null,            // open dropdown
+  modal: null,           // draws the open modal
+  modalAction: null,     // runs if a confirm is accepted
+  report: null,          // busyness report in progress
+  walk: null,            // fake walk in progress
+  last: {},              // last screen and id drawn
+  entering: false,       // just opened, so animate once
 };
 
-// the tabs: the address they open, their icon and their name
+// tabs: address, icon, label
 const TABS = [
   { screen: "find",     icon: "search",       label: "Find" },
   { screen: "book",     icon: "calendarPlus", label: "Book a Room" },
@@ -42,15 +21,14 @@ const TABS = [
   { screen: "settings", icon: "gear",         label: "Settings" },
 ];
 
-// ---------------------------------------------------------------- moving between screens
+// moving between screens
 
-// changes the address, e.g. go("#/book"). the hashchange listener then redraws
+// changing the address triggers a redraw
 function go(address) {
   location.hash = address;
 }
 
-// splits the address into its parts.
-// "#/find/lib2/go" becomes { screen: "find", id: "lib2", mode: "go" }
+// "#/find/lib2/go" -> screen find, id lib2, mode go
 function currentRoute() {
   const [screen = "find", id = null, mode = null] = location.hash.replace("#/", "").split("/").filter(Boolean);
   return { screen, id, mode };
@@ -64,20 +42,19 @@ function render() {
   // leaving the directions stops the pretend walk
   if (ui.walk && !(screen === "find" && id === ui.walk.id && mode === "go")) stopWalk();
 
-  // remember how far down the results list was scrolled, to put it back after
+  // keep the list's scroll position
   const panel = $("#find-panel");
   const scrolled = panel ? panel.scrollTop : 0;
 
-  // something has just opened if the id is new, e.g. a room was picked.
-  // screens use this to play their opening animation only once
+  // only animate things the first time they open
   const sameScreen = screen === ui.last.screen;
   ui.entering = Boolean(id) && (id !== ui.last.id || !sameScreen);
-  if (screen === "book" && ui.entering) ui.slot = null; // a new room starts with no time picked
+  if (screen === "book" && ui.entering) ui.slot = null; // new room, no time picked
 
-  // where every sliding card is now, so they can glide to their new places
+  // card positions before the redraw
   const before = sameScreen ? cardPositions() : null;
 
-  // not signed in yet, or not finished set up, so those come first
+  // sign in and setup come first
   const ready = Boolean(data.user && data.setupDone);
   let html;
   if (!data.user) html = signInScreen();
@@ -92,18 +69,17 @@ function render() {
   $("#main").innerHTML = html;
   ui.last = { screen, id };
 
-  // the find screen fills the window and doesn't scroll, the others do
+  // find doesn't scroll, other pages do
   const onFind = ready && screen === "find";
   document.body.classList.toggle("find-page", onFind);
   document.body.classList.toggle("signed-out", !ready);
-  // on phones the room panel covers the screen, so the page behind shouldn't scroll
+  // stop the page scrolling behind the room panel on phones
   document.body.classList.toggle("panel-open", ready && screen === "book" && Boolean(id));
   drawTabs(ready ? screen : null);
 
-  // cards that moved slide from where they were to where they are now
   if (before) flipCards(before);
 
-  // an open modal redraws too, so it always shows the latest data
+  // keep an open modal up to date
   refreshModal();
 
   if (onFind) {
@@ -116,19 +92,17 @@ function render() {
   }
 }
 
-// ---------------------------------------------------------------- sliding cards
+// sliding cards
 
-// the position of every card marked with data-flip, keyed by its id
+// where each data-flip card is on screen
 function cardPositions() {
   const positions = new Map();
   document.querySelectorAll("[data-flip]").forEach(card => positions.set(card.dataset.flip, card.getBoundingClientRect()));
   return positions;
 }
 
-// the "flip" trick: after a redraw, each card jumps to its new place. this
-// moves it back to where it was, then lets it glide to the new place, so it
-// looks like the cards slide over. it's how the room cards move left when
-// the panel opens, and back again when it closes
+// flip animation: after a redraw, put each card back where it was and let
+// it slide to its new spot. it's how the room cards move when the panel opens
 function flipCards(before) {
   if (motionOff()) return;
   document.querySelectorAll("[data-flip]").forEach(card => {
@@ -145,7 +119,7 @@ function flipCards(before) {
   });
 }
 
-// draws the tabs, with the current one picked. hidden before sign-in
+// hidden until signed in
 function drawTabs(current) {
   const nav = $("#tabs");
   nav.hidden = !current;
@@ -166,10 +140,9 @@ function notFound() {
     actions: btn("Go to Find", { kind: "primary", href: "#/find" }) })}</section>`;
 }
 
-// redraw whenever the address changes. going to a different screen starts
-// at the top, but opening a room on the same screen keeps your place
+// redraw on every address change. a new screen starts at the top
 window.addEventListener("hashchange", () => {
-  // on phones, opening a space switches to the map so you can see it
+  // on phones, show the map when a space opens
   const { screen, id } = currentRoute();
   if (screen === "find" && id && isNarrow()) ui.findView = "map";
   const newScreen = screen !== ui.last.screen;
@@ -178,10 +151,9 @@ window.addEventListener("hashchange", () => {
   if (newScreen) window.scrollTo(0, 0);
 });
 
-// ---------------------------------------------------------------- settings
+// settings
 
-// puts the appearance and accessibility settings onto the page, as
-// attributes and classes the css reads
+// theme, accent and accessibility settings, for the css
 function applySettings() {
   const s = data.settings;
   const root = document.documentElement;
@@ -191,14 +163,14 @@ function applySettings() {
   root.classList.toggle("large-text", s.largeText);
   root.classList.toggle("high-contrast", s.highContrast);
   root.classList.toggle("reduce-motion", s.reduceMotion);
-  // the colour of the phone's status bar follows the accent too
+  // phone status bar follows the accent
   $('meta[name="theme-color"]').content = ACCENTS.find(a => a.id === s.accent).hex;
 }
 
-// if the device switches between light and dark, follow it when theme is auto
+// follow the device when theme is auto
 window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => render());
 
-// flips an on/off setting, e.g. toggleSetting("largeText")
+// e.g. toggleSetting("largeText")
 function toggleSetting(name) {
   data.settings[name] = !data.settings[name];
   saveData();
@@ -247,11 +219,11 @@ function setAvatarColour(id) {
   render();
 }
 
-// ---------------------------------------------------------------- sign in and set up
+// sign in and set up
 
-// checks the email looks like a uea one, then signs in. no real check happens
+// fake sign in, only checks it's a uea email
 function signIn(event) {
-  event.preventDefault(); // stops the form reloading the page
+  event.preventDefault(); // don't reload the page
   const email = $("#email").value.trim().toLowerCase();
   const error = $("#sign-in-error");
 
@@ -261,7 +233,7 @@ function signIn(event) {
     return;
   }
 
-  // makes a display name from the email, e.g. "abc12xyz@uea.ac.uk" becomes "abc12xyz"
+  // name is the bit before the @
   data.user = { name: email.split("@")[0], email, avatar: "initials", avatarColour: data.settings.accent };
   saveData();
   go("#/find");
@@ -290,7 +262,7 @@ function askToSignOut() {
   });
 }
 
-// wipes everything, so the app starts again from the sign-in screen
+// clears everything and goes back to sign in
 function askToReset() {
   confirmModal({
     title: "Reset All App Data?",
@@ -307,16 +279,15 @@ function askToReset() {
   });
 }
 
-// ---------------------------------------------------------------- filters and sorting
+// filters and sorting
 
-// listName is "find" or "book", since each page keeps its own filters
+// listName is "find" or "book"
 
 function openFilters(listName) {
   ui.menu = null;
   openModal(() => filterModal(listName));
 }
 
-// switches a filter on if it's off, or off if it's on
 function toggleFilter(listName, id) {
   const prefs = data[listName];
   if (prefs.filters.includes(id)) prefs.filters = prefs.filters.filter(f => f !== id);
@@ -330,7 +301,7 @@ function clearFilters(listName) {
   data[listName].filters = [];
   saveData();
   render();
-  // lets the user get their filters back if they pressed it by mistake
+  // undo in case it was a mistake
   showToast("Filters cleared", () => { data[listName].filters = before; saveData(); render(); });
 }
 
@@ -354,7 +325,7 @@ function setFindView(view) {
   render();
 }
 
-// ---------------------------------------------------------------- booking
+// booking
 
 function setGroupSize(change) {
   data.book.groupSize = Math.min(12, Math.max(1, data.book.groupSize + change));
@@ -362,15 +333,15 @@ function setGroupSize(change) {
   render();
 }
 
-// picks a day: 0 is today, 1 is tomorrow, and so on
+// 0 is today, 1 tomorrow and so on
 function setBookDay(offset) {
   data.book.day = offset;
-  ui.slot = null; // a time picked on another day might not be free on this one
+  ui.slot = null; // that time might not be free on this day
   saveData();
   render();
 }
 
-// opens a room's booking panel, with no time picked yet
+// opens a room's panel
 function startBooking(id) {
   ui.slot = null;
   go(`#/book/${id}`);
@@ -381,7 +352,7 @@ function pickSlot(slot) {
   render();
 }
 
-// asks "are you sure?" with all the details, before booking
+// confirm before booking
 function askToBook(roomId) {
   const room = findSpace(roomId);
   const date = bookDate();
@@ -403,10 +374,10 @@ function askToBook(roomId) {
       const booking = { id: String(Date.now()), roomId, date, slot: ui.slot, people: size };
       data.bookings.push(booking);
       saveData();
-      // stay on the room, so the time now shows as "yours". it's also in my bookings
+      // stay on the room so the slot shows as yours
       ui.slot = null;
       render();
-      // lab 7 fix: undo stays until the user closes it, instead of vanishing after 8 seconds
+      // lab 7 fix: undo stays until closed
       showToast(`Booked ${room.name}, ${dateLabel(date).toLowerCase()} at ${booking.slot}. It's in My Bookings.`, () => removeBooking(booking.id));
     },
   });
@@ -434,10 +405,10 @@ function removeBooking(id) {
   render();
 }
 
-// ---------------------------------------------------------------- busyness reports
+// busyness reports
 
 function openReport(id) {
-  // "before" remembers the old report so undo can put it back
+  // keep the old report for undo
   ui.report = { id, level: null, done: false, before: data.reports[id] || null };
   openModal(reportModal);
 }
@@ -454,7 +425,7 @@ function sendReport() {
   saveData();
   ui.report.done = true;
 
-  // if they'd just arrived from directions, go back to the space's details
+  // back to the details if they came from directions
   if (ui.walk && ui.walk.id === id) go(`#/find/${id}`);
   else render();
 }
@@ -470,18 +441,17 @@ function undoReport() {
   showToast("Update removed");
 }
 
-// goes back to the pick-a-level step, keeping the level they chose
+// back to picking a level
 function changeReport() {
   ui.report.done = false;
   refreshModal();
 }
 
-// pretends to ask people at the space, and a reply comes in a few seconds later
+// fake request, a made-up reply comes back after a few seconds
 function askForUpdate(id) {
   const space = findSpace(id);
   showToast(`Asked people at ${space.name}. We'll tell you when someone replies.`);
   setTimeout(() => {
-    // the made-up reply is a little busier or quieter than now
     const now = busyness(space).busy;
     space.busy = Math.min(0.97, Math.max(0.1, now + (Math.random() < 0.5 ? -0.15 : 0.15)));
     space.updatedMin = 0;
@@ -492,35 +462,35 @@ function askForUpdate(id) {
   }, 4000);
 }
 
-// the nearest open space that's quiet, used when a space is busy
+// nearest quiet open space
 function nearbyAlternative(space) {
   return SPACES
     .filter(other => other.id !== space.id && other.kind === "open" && busyLabel(other).colour === "green")
     .sort((a, b) => Math.hypot(a.x - space.x, a.y - space.y) - Math.hypot(b.x - space.x, b.y - space.y))[0];
 }
 
-// ---------------------------------------------------------------- pretend walking
+// pretend walking
 
-// moves the walking dot a little every 200 ms, so each minute takes a second.
-// only the dot and the text change, so the map doesn't get redrawn every step
+// moves the dot every 200ms, one walking minute per second.
+// only the dot and text update, not the whole map
 function startWalk(id) {
   const space = findSpace(id);
   const minutes = walkMins(space);
   ui.walk = { id, progress: 0, alerted: false };
-  render(); // redraws once, so the button says "walking…"
+  render(); // so the button says walking
 
   ui.walk.timer = setInterval(() => {
     ui.walk.progress = Math.min(1, ui.walk.progress + 1 / (minutes * 5));
     moveWalker(space, minutes);
 
-    // halfway there, warn if the space has got busy, with a quieter one nearby
+    // halfway, warn if it's got busy
     if (ui.walk.progress >= 0.5 && !ui.walk.alerted && data.settings.alerts && busyLabel(space).colour !== "green") {
       ui.walk.alerted = true;
       const other = nearbyAlternative(space);
       if (other) showBanner(`${space.name} is filling up`, `${other.name} is quiet. Tap to see it.`, `#/find/${other.id}`);
     }
 
-    // arrived: stop moving and redraw, which shows the "you've arrived" card
+    // arrived
     if (ui.walk.progress >= 1) {
       clearInterval(ui.walk.timer);
       render();
@@ -543,7 +513,7 @@ function moveWalker(space, minutes) {
   if ($("#walk-bar")) $("#walk-bar").style.width = `${ui.walk.progress * 100}%`;
 }
 
-// finds the point a fraction of the way along a line made of straight parts
+// point a fraction of the way along the route
 function pointAlong(points, fraction) {
   const lengths = [];
   for (let i = 1; i < points.length; i++) {
@@ -551,7 +521,6 @@ function pointAlong(points, fraction) {
   }
   let distanceLeft = fraction * lengths.reduce((a, b) => a + b, 0);
 
-  // walk along each part until the distance runs out
   for (let i = 0; i < lengths.length; i++) {
     if (distanceLeft <= lengths[i]) {
       const t = distanceLeft / lengths[i];
@@ -568,19 +537,19 @@ function stopWalk() {
   ui.walk = null;
 }
 
-// ---------------------------------------------------------------- start
+// start
 
-// clicking the dark area behind a modal closes it
+// click outside a modal to close it
 $("#modal").addEventListener("click", event => {
   if (event.target.id === "modal") closeModal();
 });
 
-// the escape key closes a menu, then a modal, then the card on the map
+// escape closes the menu, then the modal, then the card
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
   if (ui.menu) { ui.menu = null; render(); }
   else if (!$("#modal").hidden) closeModal();
-  else if (currentRoute().id) go(`#/${currentRoute().screen}`); // closes a card on find, or a room's panel
+  else if (currentRoute().id) go(`#/${currentRoute().screen}`);
 });
 
 render();

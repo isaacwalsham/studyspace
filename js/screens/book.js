@@ -1,15 +1,4 @@
-/*
- * screens/book.js
- * booking a room. the controls run along the top, the rooms fill the width
- * as cards, and picking a room slides the cards to the left and opens a
- * panel on the right with its details and times, where you can book it.
- *   #/book            all rooms
- *   #/book/room020    the same, with room 0.20's panel open
- * on phones, the panel slides in over the whole screen instead.
- */
-
-// lab 7 fix: booking has its own tab, separate from open seating. you say
-// how many people first, and rooms that are too small are hidden
+// lab 7 fix: rooms have their own tab, and ones too small for the group are hidden
 function bookScreen(id) {
   const prefs = data.book;
   const rooms = SPACES.filter(space => space.kind === "room");
@@ -55,7 +44,7 @@ function bookScreen(id) {
   </section>`;
 }
 
-// the minus and plus buttons for group size
+// group size stepper
 function groupStepper() {
   const size = data.book.groupSize;
   return `<div class="stepper">
@@ -65,8 +54,7 @@ function groupStepper() {
   </div>`;
 }
 
-// today and the next four days, as joined buttons. each one looks like a
-// tiny calendar page, the day name over the date, so all five fit on a phone
+// five days as little calendar tiles so they fit on a phone
 function dayPicker() {
   return `<div class="day-picker">${segmented(bookingDays().map(day => ({
     value: day.offset,
@@ -74,8 +62,7 @@ function dayPicker() {
   })), data.book.day, v => `setBookDay(${v})`, "Day")}</div>`;
 }
 
-// a strip of twelve blocks, one per hour from 09:00, showing which are free.
-// it lets you see at a glance when a room is free, without opening it
+// one block per hour, so free times show without opening the room
 function slotStrip(room) {
   const date = bookDate();
   const blocks = SLOTS.map(slot => `<i class="strip-${slotState(room, date, slot)}" title="${slot}"></i>`).join("");
@@ -85,8 +72,7 @@ function slotStrip(room) {
   </span>`;
 }
 
-// one room, as a card. data-flip lets the card slide to its new place
-// when the panel opens, see flipCards in app.js
+// data-flip lets it slide when the panel opens
 function roomCard(room, showReasons, selectedId) {
   const reasons = showReasons ? reasonsNotMatched(room, data.book) : [];
 
@@ -110,7 +96,7 @@ function roomCard(room, showReasons, selectedId) {
   </button>`;
 }
 
-// the panel on the right: everything about one room, and booking it
+// room details and booking
 function roomPanel(room) {
   const date = bookDate();
   const tooSmall = room.capacity < data.book.groupSize;
@@ -123,8 +109,7 @@ function roomPanel(room) {
       onclick="pickSlot('${slot}')">${slot}${words[state] ? `<small>${words[state]}</small>` : ""}</button>`;
   }).join("");
 
-  // ui.entering is true only on the render where the panel first opens, so
-  // the slide-in animation doesn't replay every time a time is picked
+  // only slide in when first opened, not on every redraw
   return `<aside class="detail-panel ${ui.entering ? "enter" : ""}" aria-label="${safe(room.name)}">
     <header class="panel-head">
       ${btn("", { kind: "ghost", icon: "back", href: "#/book", ariaLabel: "Back to all rooms" })}

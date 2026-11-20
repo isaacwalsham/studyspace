@@ -1,9 +1,3 @@
-/*
- * screens/settings.js
- * settings, grouped like a phone's settings app. your profile is first.
- *   #/settings
- */
-
 function settingsScreen() {
   const s = data.settings;
   const user = data.user;
@@ -73,7 +67,6 @@ function settingsScreen() {
   </section>`;
 }
 
-// one on/off setting: a title, a description and a switch
 function settingRow(name, title, description) {
   return `<div class="row">
     <span class="list-text"><strong>${title}</strong><span class="muted small">${description}</span></span>
@@ -81,7 +74,7 @@ function settingRow(name, title, description) {
   </div>`;
 }
 
-// a row of colour circles to pick from. action is the function to call
+// colour picker
 function swatches(current, action) {
   return `<div class="swatches" role="group" aria-label="Colours">
     ${ACCENTS.map(colour => `<button class="swatch ${current === colour.id ? "on" : ""}" style="background:${colour.hex}"
@@ -90,7 +83,7 @@ function swatches(current, action) {
   </div>`;
 }
 
-// the modal for picking a profile picture and its colour
+// profile picture modal
 function avatarModal() {
   const user = data.user;
   return modalFrame({

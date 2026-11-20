@@ -1,10 +1,4 @@
-/*
- * screens/start.js
- * the first two screens: sign in, then picking what you need.
- */
-
-// fake sign-in. any @uea.ac.uk email works and the password isn't checked,
-// because the brief says not to build real accounts
+// fake sign in, any @uea.ac.uk email works
 function signInScreen() {
   return `<section class="page narrow centre">
     <div class="logo-big">${logo(52)}</div>
@@ -24,7 +18,7 @@ function signInScreen() {
   </section>`;
 }
 
-// shown once after sign-in, to pick their needs and how far they'll walk
+// first time setup: needs and walking distance
 function setupScreen() {
   const prefs = data.find;
   return `<section class="page narrow centre">

@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b7a75">
   <title>StudySpace</title>
-  <!-- the logo as the browser tab icon: a white pin with a book, on teal -->
+  <!-- favicon -->
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b7a75'/%3E%3Cpath d='M16 3C10.5 3 6 7.4 6 12.9c0 7 8.6 15.1 9 15.5.6.5 1.4.5 2 0 .4-.4 9-8.5 9-15.5C26 7.4 21.5 3 16 3z' fill='%23fff'/%3E%3Cpath d='M10.5 10.4c1.9-.8 3.8-.6 5.5.6 1.7-1.2 3.6-1.4 5.5-.6v6.4c-1.9-.8-3.8-.6-5.5.6-1.7-1.2-3.6-1.4-5.5-.6zM16 11v6.4' fill='none' stroke='%230b7a75' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- top bar: the logo, and the tabs. on phones the tabs move to the bottom -->
+  <!-- top bar -->
   <header class="top-bar">
     <a class="logo" href="#/find" aria-label="StudySpace home">
       <svg class="logo-mark" width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
@@ -23,21 +23,21 @@
     <nav id="tabs" class="tabs" aria-label="Main" hidden></nav>
   </header>
 
-  <!-- live alerts, like "space filling up", appear here -->
+  <!-- live alerts -->
   <div id="banner" class="banner" hidden role="alert"></div>
 
-  <!-- every screen is drawn inside main by app.js -->
+  <!-- screens are drawn here -->
   <main id="main"></main>
 
-  <!-- small messages, like "booked", with undo -->
+  <!-- toasts -->
   <div id="toast" class="toast" hidden role="status"></div>
 
-  <!-- the one modal every popup uses, see components.js -->
+  <!-- shared modal -->
   <div id="modal" class="modal" hidden>
     <div id="modal-box" class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title"></div>
   </div>
 
-  <!-- order matters: data first, then helpers and components, then the screens, then app.js starts it -->
+  <!-- order matters, app.js goes last -->
   <script src="js/map-data.js"></script>
   <script src="js/data.js"></script>
   <script src="js/store.js"></script>

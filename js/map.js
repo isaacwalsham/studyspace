@@ -1,36 +1,21 @@
-/*
- * map.js
- * draws the campus map as an svg picture and makes it move: drag to pan,
- * scroll or pinch to zoom, and tap a pin to open that space.
- *
- * the map is measured in metres. the svg "viewBox" says which part of the
- * campus is on screen, as x, y, width and height. panning changes x and y,
- * zooming changes width and height. ui.map in app.js remembers it.
- * the map's colours are set in style.css, so they change with dark mode.
- */
-
-// the part of the campus shown when the app opens, in metres
+// starting view, in metres
 const HOME_VIEW = { x: 170, y: 230, w: 680, h: 340 };
 
-// how far in and out the map can zoom, as the width shown in metres
+// zoom limits, as visible width in metres
 const MIN_WIDTH = 120;
 const MAX_WIDTH = 1400;
 
-// below this width, in metres, the smaller building names appear
+// minor labels show below this width
 const SHOW_ALL_NAMES = 480;
 
-// ---------------------------------------------------------------- drawing
+// drawing
 
-// builds the map. pins, labels and dots are drawn at a fixed size in screen
-// pixels, so they don't grow huge when zoomed in. scaleMarkers sorts that out
-//   spaces    which spaces get a pin
-//   selected  the open space's id, drawn bigger with a ring round it
-//   route     a space to draw the walking route to
+// markers stay the same size on screen, scaleMarkers handles that
 function drawMap({ spaces = [], selected = null, route = null }) {
   const view = ui.map;
   const start = startPlace();
 
-  // the walking route is a bent line from the user to the space
+  // walking route
   let routeLine = "";
   if (route) {
     const bend = routeBend(route);
@@ -38,21 +23,21 @@ function drawMap({ spaces = [], selected = null, route = null }) {
       vector-effect="non-scaling-stroke"/>`;
   }
 
-  // building names. the "major" ones always show, the rest when zoomed in
+  // building labels
   const names = LANDMARKS.map(place => marker(place.x, place.y,
     `<text class="place-label" text-anchor="middle">${place.name}</text>`, "", place.major ? "" : "minor")).join("");
 
-  // grey pins are drawn first, then coloured ones, then the selected one, so it's on top
+  // grey first so coloured and selected pins sit on top
   const layer = space => (space.id === selected ? 2 : isBestMatch(space, data.find) ? 1 : 0);
   const ordered = [...spaces].sort((a, b) => layer(a) - layer(b));
   const pins = ordered.map(space => pin(space, space.id === selected)).join("");
 
-  // the user: a blue dot with location on, or a dark pin on the place they picked
+  // user: blue dot with location on, pin otherwise
   const you = marker(start.x, start.y, data.settings.useLocation
     ? `<circle class="you-halo" r="16"/><circle class="you-dot" r="7"/>`
     : `<circle class="you-pin" r="8"/><text class="you-label" y="-14" text-anchor="middle">You</text>`);
 
-  // the walking dot, moved along the route by moveWalker in app.js
+  // walking dot, moved by moveWalker
   const walker = route ? marker(start.x, start.y, `<circle class="you-dot" r="9"/>`, `id="walker"`) : "";
 
   return `<svg id="map" class="map ${view.w < SHOW_ALL_NAMES ? "zoomed-in" : ""}" viewBox="${view.x} ${view.y} ${view.w} ${view.h}"
@@ -69,16 +54,12 @@ function drawMap({ spaces = [], selected = null, route = null }) {
   </svg>`;
 }
 
-// wraps something in a group placed at x, y on the map. data-x and data-y
-// let scaleMarkers keep it the same size on screen at any zoom.
-// extra adds more attributes, and extraClass adds more class names
+// data-x and data-y let scaleMarkers keep it a fixed size
 function marker(x, y, inside, extra = "", extraClass = "") {
   return `<g class="marker ${extraClass}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})" ${extra}>${inside}</g>`;
 }
 
-// one pin. best matches are coloured by busyness and named. the rest are
-// small and grey. the selected one is bigger, with a ring and its name.
-// rooms are drawn as rounded squares, so they look different from open seating
+// best matches are coloured and named, the rest small and grey. rooms are squares
 function pin(space, isSelected) {
   const label = busyLabel(space);
   const match = isBestMatch(space, data.find);
@@ -96,20 +77,20 @@ function pin(space, isSelected) {
     `pin pin-${colour}`);
 }
 
-// the corner of the walking route, so it looks like it follows a path
+// bend in the route so it looks like a path
 function routeBend(space) {
   const start = startPlace();
   return [(start.x + space.x) / 2, start.y + 30];
 }
 
-// ---------------------------------------------------------------- sizes and moving
+// sizes and moving
 
-// how many map metres one screen pixel covers right now
+// metres per screen pixel
 function metresPerPixel(svg) {
   return 1 / svg.getScreenCTM().a;
 }
 
-// keeps every pin, label and dot the same size on screen at any zoom level
+// same size on screen at any zoom
 function scaleMarkers(svg) {
   const k = metresPerPixel(svg);
   svg.querySelectorAll(".marker").forEach(group => {
@@ -117,7 +98,7 @@ function scaleMarkers(svg) {
   });
 }
 
-// puts ui.map onto the svg, then fixes the marker sizes and building names
+// applies ui.map to the svg
 function applyView(svg) {
   const v = ui.map;
   svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`);
@@ -125,8 +106,7 @@ function applyView(svg) {
   scaleMarkers(svg);
 }
 
-// zooms by a factor around a point on the screen, so the spot under the
-// mouse or fingers stays still. factor above 1 zooms out, below 1 zooms in
+// zoom around a point so it stays under the cursor. factor > 1 zooms out
 function zoomAt(svg, clientX, clientY, factor) {
   const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, ui.map.w * factor));
   factor = newWidth / ui.map.w;
@@ -141,41 +121,39 @@ function zoomAt(svg, clientX, clientY, factor) {
   applyView(svg);
 }
 
-// zooms around the middle of the map, for the + and − buttons
+// + and - buttons
 function zoomButton(factor) {
   const svg = $("#map");
   const box = svg.getBoundingClientRect();
   zoomAt(svg, box.left + box.width / 2, box.top + box.height / 2, factor);
 }
 
-// goes back to the starting view of the whole campus
+// back to the whole campus
 function resetMapView() {
   ui.map = { ...HOME_VIEW };
   applyView($("#map"));
 }
 
-// true if animations should be skipped, from settings or the device
+// reduce motion, from settings or the device
 function motionOff() {
   return data.settings.reduceMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// smoothly moves the map so a space sits in the top part of the map,
-// above the details card. it also zooms in a little if zoomed far out
+// slides the map so the space sits above the details card
 function panTo(space) {
   const svg = $("#map");
   if (!svg) return;
   const from = { ...ui.map };
 
-  // zoom in to at most 420 metres wide, keeping the same shape
+  // zoom in to 420m wide at most
   const w = Math.min(from.w, 420);
   const h = from.h * (w / from.w);
 
-  // how much of the map is visible on screen, in metres, at the new zoom
   const box = svg.getBoundingClientRect();
   const perPixel = Math.max(w / box.width, h / box.height);
   const visibleHeight = box.height * perPixel;
 
-  // put the space 28% down the visible map, so the card doesn't cover it
+  // 28% down so the card doesn't cover it
   const to = { w, h, x: space.x - w / 2, y: space.y + visibleHeight * 0.22 - h / 2 };
 
   if (motionOff()) {
@@ -184,11 +162,10 @@ function panTo(space) {
     return;
   }
 
-  // slide there over 350 milliseconds
   const started = performance.now();
   function step(now) {
     const t = Math.min(1, (now - started) / 350);
-    const ease = 1 - Math.pow(1 - t, 3); // starts fast, ends slow
+    const ease = 1 - Math.pow(1 - t, 3); // ease out
     for (const key of ["x", "y", "w", "h"]) ui.map[key] = from[key] + (to[key] - from[key]) * ease;
     if (!document.body.contains(svg)) return; // the screen changed, so stop
     applyView(svg);
@@ -197,16 +174,16 @@ function panTo(space) {
   requestAnimationFrame(step);
 }
 
-// ---------------------------------------------------------------- mouse, touch and keyboard
+// mouse, touch and keyboard
 
-// called after the find screen is drawn, to make the map respond
+// drag, pinch, wheel, tap and keyboard
 function setupMap() {
   const svg = $("#map");
   if (!svg) return;
   scaleMarkers(svg);
 
-  const pointers = new Map(); // every finger or mouse button pressed on the map
-  let moved = 0;              // how far it's been dragged, to tell a drag from a tap
+  const pointers = new Map(); // fingers or mouse currently down
+  let moved = 0;              // to tell a drag from a tap
   let pressedPin = null;      // the pin the press started on, if any
 
   svg.addEventListener("pointerdown", event => {
@@ -223,20 +200,20 @@ function setupMap() {
     pointers.set(event.pointerId, now);
     moved += Math.abs(now.x - old.x) + Math.abs(now.y - old.y);
 
-    // once it's clearly a drag, keep getting moves even outside the map
+    // capture once it's a real drag
     if (moved > 4 && !svg.hasPointerCapture(event.pointerId)) {
       svg.setPointerCapture(event.pointerId);
       svg.classList.add("dragging");
     }
 
     if (pointers.size === 1) {
-      // one finger or the mouse: drag the map along with it
+      // one pointer: pan
       const perPixel = metresPerPixel(svg);
       ui.map.x -= (now.x - old.x) * perPixel;
       ui.map.y -= (now.y - old.y) * perPixel;
       applyView(svg);
     } else if (pointers.size === 2) {
-      // two fingers: pinch. compare the gap between them before and after
+      // two fingers: pinch zoom
       const other = [...pointers.entries()].find(([id]) => id !== event.pointerId)[1];
       const gapBefore = Math.hypot(old.x - other.x, old.y - other.y);
       const gapAfter = Math.hypot(now.x - other.x, now.y - other.y);
@@ -244,7 +221,7 @@ function setupMap() {
     }
   });
 
-  // lifting the finger or mouse. if it barely moved, it was a tap
+  // barely moved means it was a tap
   const lift = event => {
     pointers.delete(event.pointerId);
     svg.classList.remove("dragging");
@@ -257,13 +234,13 @@ function setupMap() {
   svg.addEventListener("pointerup", lift);
   svg.addEventListener("pointercancel", lift);
 
-  // mouse wheel or trackpad: zoom around the cursor
+  // wheel or trackpad zoom
   svg.addEventListener("wheel", event => {
     event.preventDefault(); // stops the page scrolling instead
     zoomAt(svg, event.clientX, event.clientY, Math.exp(event.deltaY * 0.0015));
   }, { passive: false });
 
-  // keyboard: enter or space on a focused pin opens it
+  // enter or space opens a focused pin
   svg.addEventListener("keydown", event => {
     const hit = event.target.closest(".pin");
     if (hit && (event.key === "Enter" || event.key === " ")) {
@@ -273,7 +250,7 @@ function setupMap() {
   });
 }
 
-// when the window changes size, keep the markers the right size
+// keep markers the right size on resize
 window.addEventListener("resize", () => {
   const svg = $("#map");
   if (svg) scaleMarkers(svg);

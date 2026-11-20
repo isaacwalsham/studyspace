@@ -1,10 +1,4 @@
-/*
- * helpers.js
- * small functions used by lots of screens: icons, walking times, busyness,
- * which spaces match, the match score, and booking days and times.
- */
-
-// shortcut for finding one element on the page
+// shortcut for querySelector
 const $ = selector => document.querySelector(selector);
 
 // finds a space, filter or place by its id
@@ -12,7 +6,7 @@ const findSpace = id => SPACES.find(space => space.id === id);
 const findFilter = id => FILTERS.find(filter => filter.id === id);
 const findPlace = id => PLACES.find(place => place.id === id);
 
-// true on phone-sized screens, where find shows the list or the map, not both
+// phone width, where find shows the list or the map
 const isNarrow = () => window.matchMedia("(max-width: 899px)").matches;
 
 // "1 space" or "3 spaces"
@@ -21,7 +15,7 @@ const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`;
 // "1 person" or "4 people"
 const people = count => `${count} ${count === 1 ? "person" : "people"}`;
 
-// ---------------------------------------------------------------- icons
+// icons
 
 // line icons, drawn on a 24 by 24 grid
 const ICONS = {
@@ -73,15 +67,14 @@ const ICONS = {
   layers: '<path d="m12 3 9 5-9 5-9-5 9-5zM3 12.5l9 5 9-5M3 16.5l9 5 9-5"/>',
 };
 
-// turns an icon name into svg code that can go straight into the page
+// icon name -> svg
 function icon(name, size = 20) {
   return `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
     aria-hidden="true">${ICONS[name] || ""}</svg>`;
 }
 
-// the app logo: a white map pin with an open book inside it. the book uses
-// the accent colour, so it changes when the user picks a new one
+// map pin with a book. the book follows the accent colour
 function logo(size = 28) {
   return `<svg class="logo-mark" width="${size}" height="${size}" viewBox="0 0 32 32" aria-hidden="true">
     <path d="M16 3C10.5 3 6 7.4 6 12.9c0 7 8.6 15.1 9 15.5.6.5 1.4.5 2 0 .4-.4 9-8.5 9-15.5C26 7.4 21.5 3 16 3z" fill="#fff"/>
@@ -90,7 +83,7 @@ function logo(size = 28) {
   </svg>`;
 }
 
-// the user's picture: their initials or a chosen icon, on their chosen colour
+// initials or an icon on their colour
 function avatar(user, size = 52) {
   const inside = user.avatar === "initials" || !user.avatar
     ? initials(user.name)
@@ -99,31 +92,29 @@ function avatar(user, size = 52) {
     style="width:${size}px;height:${size}px;font-size:${size * 0.36}px">${inside}</span>`;
 }
 
-// the first letters of someone's name, e.g. "isaac walsham" or "isaac.walsham" is "IW"
+// "isaac walsham" -> "IW"
 function initials(name) {
   return name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map(word => word[0].toUpperCase()).join("") || "?";
 }
 
-// ---------------------------------------------------------------- where the user is
+// where the user is
 
-// the place the user is starting from. with location on it's the pretend
-// gps spot, otherwise it's the place they picked in settings
+// fake gps if location is on, otherwise the place picked in settings
 function startPlace() {
   const id = data.settings.useLocation ? GPS_PLACE : data.settings.startPlace;
   return findPlace(id) || PLACES[0];
 }
 
-// walking minutes from the user to a space. paths aren't straight, so the
-// straight-line distance is made 35% longer, then walked at 80 metres a minute
+// straight line + 35% for paths, at 80m a minute
 function walkMins(space) {
   const start = startPlace();
   const metres = Math.hypot(space.x - start.x, space.y - start.y);
   return Math.max(1, Math.round(metres * 1.35 / 80));
 }
 
-// ---------------------------------------------------------------- busyness
+// busyness
 
-// how busy a space is right now. a user's report replaces the built-in value
+// a user's report overrides the seed value
 function busyness(space) {
   const report = data.reports[space.id];
   if (report) {
@@ -133,8 +124,7 @@ function busyness(space) {
   return { busy: space.busy, updatedMin: space.updatedMin, byYou: false };
 }
 
-// turns busyness into a word and a colour. the word is always shown, so
-// the colour is never the only clue, which helps colour-blind users
+// always a word as well as a colour, for colour-blind users
 function busyLabel(space) {
   const busy = busyness(space).busy;
   if (busy < 0.4) return { text: "Quiet", colour: "green" };
@@ -143,35 +133,34 @@ function busyLabel(space) {
   return { text: "Full", colour: "red" };
 }
 
-// writes "updated 4 min ago", or "just now" for very recent updates
+// "updated 4 min ago"
 function updatedText(space) {
   const info = busyness(space);
   const when = info.updatedMin < 1 ? "just now" : `${info.updatedMin} min ago`;
   return info.byYou ? `You updated this ${when}` : `Updated ${when}`;
 }
 
-// ---------------------------------------------------------------- matching
+// matching
 
-// prefs is data.find or data.book: the filters, walk limit and sort for that page
+// prefs is data.find or data.book
 
-// the filters that make sense on a page. rooms never allow food, for example
+// filters that apply to this page
 function filtersFor(listName) {
   return listName === "book" ? FILTERS.filter(filter => filter.forRooms) : FILTERS;
 }
 
-// true if a space meets every filter in a list of filter ids
+// has every filter
 function meetsFilters(space, filterIds) {
   return filterIds.every(id => findFilter(id).test(space));
 }
 
-// the switched-on filters that this space doesn't meet
+// filters this space is missing
 function missingFilters(space, prefs) {
   return prefs.filters.map(findFilter).filter(filter => !filter.test(space));
 }
 
-// step 1 of matching: a "best match" has everything you asked for, is within
-// your walking limit, and is usable: not full, or for a room, has a free time.
-// lab 7 fix: before, spaces that missed filters could still be a best match
+// step 1: a best match has every filter, is within the walk limit and isn't full.
+// lab 7 fix: spaces missing filters used to show as best matches
 function isBestMatch(space, prefs, filterIds = prefs.filters) {
   if (!meetsFilters(space, filterIds)) return false;
   if (walkMins(space) > prefs.maxWalk) return false;
@@ -179,7 +168,7 @@ function isBestMatch(space, prefs, filterIds = prefs.filters) {
   return busyLabel(space).text !== "Full";
 }
 
-// the reasons a space isn't a best match, in plain words
+// why it isn't a best match
 function reasonsNotMatched(space, prefs) {
   const reasons = missingFilters(space, prefs).map(filter => `no ${filter.label.toLowerCase()}`);
   if (walkMins(space) > prefs.maxWalk) reasons.push(`${walkMins(space)} min walk`);
@@ -188,8 +177,7 @@ function reasonsNotMatched(space, prefs) {
   return reasons;
 }
 
-// when nothing matches, finds the one filter that would show the most
-// spaces if it was turned off. returns { filter, count } or null
+// the filter that brings back the most spaces if turned off
 function filterToDrop(spaces, prefs) {
   let best = null;
   for (const id of prefs.filters) {
@@ -200,23 +188,18 @@ function filterToDrop(spaces, prefs) {
   return best;
 }
 
-// ---------------------------------------------------------------- the match score
+// the match score
 
-// step 2 of matching: rank the best matches with a score out of 100.
-// it's three simple parts, each between 0 and 1, times how much it counts:
-//
-//   open spaces:  free seats 50  +  short walk 30  +  up-to-date info 20
-//   rooms:        free times left 50  +  short walk 30  +  right size 20
-//
-// e.g. a space that's 20% busy, 6 min away and updated 3 min ago scores
-//   0.8 x 50 + 0.6 x 30 + 0.9 x 20 = 40 + 18 + 18 = 76
+// step 2: score out of 100
+// open spaces: free seats 50, walk 30, how recent 20
+// rooms: free times 50, walk 30, right size 20
+// e.g. 20% busy, 6 min away, updated 3 min ago = 40 + 18 + 18 = 76
 function scoreParts(space) {
-  // a walk of 15 minutes or more scores 0 for walking
+  // 15+ min scores 0
   const shortWalk = 1 - Math.min(walkMins(space), 15) / 15;
 
   if (space.kind === "room") {
-    // free times out of the times still left that day, so later in the
-    // day a room isn't marked down just because the morning has gone
+    // out of the slots left today, so rooms aren't marked down later on
     const date = bookDate();
     const left = SLOTS.filter(slot => slotState(space, date, slot) !== "past").length;
     return [
@@ -231,17 +214,16 @@ function scoreParts(space) {
   return [
     { label: "Free Seats", value: 1 - info.busy, weight: 50 },
     { label: "Short Walk", value: shortWalk, weight: 30 },
-    // info from just now scores 1, info 30 minutes or older scores 0
+    // 30+ min old scores 0
     { label: "Up-to-Date Info", value: 1 - Math.min(info.updatedMin, 30) / 30, weight: 20 },
   ];
 }
 
-// adds the parts up into one score out of 100
+// total out of 100
 function matchScore(space) {
   return Math.round(scoreParts(space).reduce((total, part) => total + part.value * part.weight, 0));
 }
 
-// sorts spaces using the choice in prefs.sort
 function sortSpaces(spaces, prefs) {
   const list = [...spaces];
   if (prefs.sort === "nearest") return list.sort((a, b) => walkMins(a) - walkMins(b));
@@ -253,10 +235,9 @@ function sortSpaces(spaces, prefs) {
   return list.sort((a, b) => matchScore(b) - matchScore(a));
 }
 
-// ---------------------------------------------------------------- booking days and times
+// booking days and times
 
-// the next five days you can book, e.g.
-// { offset: 0, date: "2026-11-16", label: "Today", short: "Mon 16", weekday: "Mon", number: 16 }
+// today and the next four days
 function bookingDays() {
   return [0, 1, 2, 3, 4].map(offset => {
     const date = new Date();
@@ -285,17 +266,16 @@ function dateLabel(date) {
   return new Date(date + "T12:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 }
 
-// which slots other people have booked. it's made up, but uses the room and
-// date as a "seed", so the same room on the same day always looks the same
+// fake bookings by other people, seeded by room and date so they stay the same
 function takenByOthers(roomId, date) {
   let seed = [...(roomId + date)].reduce((total, ch) => (total * 31 + ch.charCodeAt(0)) % 233280, 7);
   return SLOTS.filter(() => {
-    seed = (seed * 9301 + 49297) % 233280; // a simple, repeatable "random" number
+    seed = (seed * 9301 + 49297) % 233280; // seeded random
     return seed / 233280 < 0.3;             // about 30% of slots are taken
   });
 }
 
-// what's going on with one slot: "free", "taken", "mine" or "past"
+// free, taken, mine or past
 function slotState(room, date, slot) {
   if (data.bookings.some(b => b.roomId === room.id && b.date === date && b.slot === slot)) return "mine";
   if (date === dateFromToday(0) && Number(slot.slice(0, 2)) <= new Date().getHours()) return "past";
@@ -303,7 +283,7 @@ function slotState(room, date, slot) {
   return "free";
 }
 
-// the slots someone could still book for a room on a day
+// slots still free
 function freeSlots(room, date) {
   return SLOTS.filter(slot => slotState(room, date, slot) === "free");
 }
@@ -314,14 +294,13 @@ function endTime(slot) {
   return `${String(hour).padStart(2, "0")}:00`;
 }
 
-// true if a booking has already happened
 function isPast(booking) {
   const today = dateFromToday(0);
   if (booking.date !== today) return booking.date < today;
   return Number(endTime(booking.slot).slice(0, 2)) <= new Date().getHours();
 }
 
-// stops user text, like a name, from being read as html
+// escape user text before it goes into html
 function safe(text) {
   return String(text).replace(/[&<>"']/g, ch => `&#${ch.charCodeAt(0)};`);
 }

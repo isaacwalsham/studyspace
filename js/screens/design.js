@@ -1,10 +1,3 @@
-/*
- * screens/design.js
- * the design system page: every building block from components.js, working,
- * with a line on when to use each one. open it from settings, about, or #/design.
- * it uses the real components, so it can never drift from the real app.
- */
-
 function designScreen() {
   const sample = findSpace("lib2");
   const busySample = findSpace("hive");
@@ -108,7 +101,7 @@ function designScreen() {
   </section>`;
 }
 
-// one section of the design page: a title, when to use it, and examples
+// title, when to use it, examples
 function designBlock(title, description, examples) {
   return `<section class="design-block">
     <h2>${title}</h2>

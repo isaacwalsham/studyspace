@@ -1,18 +1,8 @@
-/*
- * screens/find.js
- * the find screen: filters, sort and results on the left, a big map on the
- * right. tapping a result or a pin slides a card up over the map.
- *   #/find            just the map and results
- *   #/find/lib2       with lib2's card open
- *   #/find/lib2/go    directions to lib2
- */
-
 function findScreen(id, mode) {
   const prefs = data.find;
   const open = SPACES.filter(space => space.kind === "open");
 
-  // step 1: split into best matches and the rest. step 2: sort each group.
-  // the rest are also ordered by how many things they miss, fewest first
+  // best matches first, then the rest by how much they're missing
   const best = sortSpaces(open.filter(space => isBestMatch(space, prefs)), prefs);
   const others = sortSpaces(open.filter(space => !isBestMatch(space, prefs)), prefs)
     .sort((a, b) => reasonsNotMatched(a, prefs).length - reasonsNotMatched(b, prefs).length);
@@ -20,7 +10,7 @@ function findScreen(id, mode) {
   const selected = id ? findSpace(id) : null;
   const going = selected && mode === "go";
 
-  // the map shows open spaces, plus a room if one is opened from my bookings
+  // plus a room if one was opened from my bookings
   const onMap = selected && selected.kind === "room" ? [...open, selected] : open;
 
   return `
@@ -58,8 +48,7 @@ function findScreen(id, mode) {
   </div>`;
 }
 
-// one result in the list. best matches show their score, the others show
-// what they're missing. the open one is highlighted, to match its pin
+// best matches show a score, the rest show what they're missing
 function resultCard(space, showReasons, selectedId) {
   const label = busyLabel(space);
   const reasons = showReasons ? reasonsNotMatched(space, data.find) : [];
@@ -74,8 +63,7 @@ function resultCard(space, showReasons, selectedId) {
   </button>`;
 }
 
-// shown when no space meets every filter. it suggests the one change that
-// would help most, instead of just saying "nothing found"
+// suggests the change that helps most instead of just "nothing found"
 function noMatches(spaces) {
   const drop = filterToDrop(spaces, data.find);
   const further = WALK_OPTIONS.find(option => option.min > data.find.maxWalk);
@@ -88,7 +76,7 @@ function noMatches(spaces) {
   });
 }
 
-// the colour key in the corner of the map
+// map key
 function mapKey() {
   const rows = [["green", "Quiet"], ["amber", "Some Seats"], ["orange", "Busy"], ["red", "Full"], ["grey", "Not a Match"]];
   return `<div class="map-key" aria-hidden="true">
@@ -96,10 +84,9 @@ function mapKey() {
   </div>`;
 }
 
-// ---------------------------------------------------------------- the card on the map
+// the card on the map
 
-// the features of a space, as icons with words.
-// lab 7 fix: nothing depends on hovering, which phones can't do
+// lab 7 fix: icons have words, nothing relies on hover
 function featureList(space) {
   const features = [
     ["quiet", ["Silent", "Quiet", "Some Talking", "Chatty", "Loud"][space.noise - 1]],
@@ -114,7 +101,7 @@ function featureList(space) {
   return `<ul class="features">${features.map(([name, text]) => `<li>${icon(name, 16)} ${text}</li>`).join("")}</ul>`;
 }
 
-// the details of one space, in the card that slides up over the map
+// details card over the map
 function spaceCard(space) {
   const missing = missingFilters(space, data.find);
   const isRoom = space.kind === "room";
@@ -160,8 +147,7 @@ function alternativeBox(space) {
   </div>`;
 }
 
-// the card while getting directions. the walk is pretend: the blue dot moves
-// along the route, then it asks how busy the space is when you arrive
+// fake walk, then asks how busy it is when you arrive
 function directionsCard(space) {
   const walking = ui.walk && ui.walk.id === space.id;
   const arrived = walking && ui.walk.progress >= 1;
@@ -194,11 +180,9 @@ function directionsCard(space) {
     </div>`;
 }
 
-// ---------------------------------------------------------------- busyness report
+// busyness report
 
-// the busyness report modal. it has two steps: pick a level, then a
-// confirmation that stays until the user presses done.
-// lab 7 fix: before, the popup closed straight away, so people weren't sure it worked
+// lab 7 fix: the confirmation stays until done is pressed, people weren't sure it had sent
 function reportModal() {
   const space = findSpace(ui.report.id);
 
