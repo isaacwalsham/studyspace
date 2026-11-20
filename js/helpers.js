@@ -105,11 +105,9 @@ function startPlace() {
   return findPlace(id) || PLACES[0];
 }
 
-// straight line + 35% for paths, at 80m a minute
+// real route along the paths, at 80m a minute. see routes.js
 function walkMins(space) {
-  const start = startPlace();
-  const metres = Math.hypot(space.x - start.x, space.y - start.y);
-  return Math.max(1, Math.round(metres * 1.35 / 80));
+  return Math.max(1, Math.round(walkRoute(space).metres / 80));
 }
 
 // busyness

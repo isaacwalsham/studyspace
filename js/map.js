@@ -18,9 +18,8 @@ function drawMap({ spaces = [], selected = null, route = null }) {
   // walking route
   let routeLine = "";
   if (route) {
-    const bend = routeBend(route);
-    routeLine = `<path class="route" d="M${start.x} ${start.y} L${bend[0]} ${bend[1]} L${route.x} ${route.y}"
-      vector-effect="non-scaling-stroke"/>`;
+    const points = walkRoute(route).points.map(([x, y]) => `${x} ${y}`).join(" L");
+    routeLine = `<path class="route" d="M${points}" vector-effect="non-scaling-stroke"/>`;
   }
 
   // building labels
@@ -75,12 +74,6 @@ function pin(space, isSelected) {
     ${match || isSelected ? `<text class="pin-label ${isSelected ? "selected" : ""}" y="${-size - 7}" text-anchor="middle">${safe(space.name)}</text>` : ""}`,
     `data-id="${space.id}" tabindex="0" role="button" aria-label="${safe(space.name)}, ${label.text}"`,
     `pin pin-${colour}`);
-}
-
-// bend in the route so it looks like a path
-function routeBend(space) {
-  const start = startPlace();
-  return [(start.x + space.x) / 2, start.y + 30];
 }
 
 // sizes and moving

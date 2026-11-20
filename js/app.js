@@ -462,11 +462,11 @@ function askForUpdate(id) {
   }, 4000);
 }
 
-// nearest quiet open space
+// nearest quiet open space, by walking distance from this one
 function nearbyAlternative(space) {
   return SPACES
     .filter(other => other.id !== space.id && other.kind === "open" && busyLabel(other).colour === "green")
-    .sort((a, b) => Math.hypot(a.x - space.x, a.y - space.y) - Math.hypot(b.x - space.x, b.y - space.y))[0];
+    .sort((a, b) => findRoute(space, a).metres - findRoute(space, b).metres)[0];
 }
 
 // pretend walking
@@ -500,8 +500,7 @@ function startWalk(id) {
 
 // puts the walking dot in the right place and updates the minutes left
 function moveWalker(space, minutes) {
-  const start = startPlace();
-  const point = pointAlong([[start.x, start.y], routeBend(space), [space.x, space.y]], ui.walk.progress);
+  const point = pointAlong(walkRoute(space).points, ui.walk.progress);
   const dot = $("#walker");
   if (dot) {
     dot.dataset.x = point[0];
