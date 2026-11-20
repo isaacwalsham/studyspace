@@ -22,6 +22,8 @@ function buildGraph() {
         const a = nodeAt(nums[i - 2], nums[i - 1]);
         const b = nodeAt(nums[i], nums[i + 1]);
         if (a === b) continue;
+        // no walking through buildings, so skip any bit of path that runs inside one
+        if (insideBuilding((a.x + b.x) / 2, (a.y + b.y) / 2)) continue;
         const metres = Math.hypot(a.x - b.x, a.y - b.y);
         a.edges.push({ to: b, metres });
         b.edges.push({ to: a, metres });
@@ -29,6 +31,35 @@ function buildGraph() {
     }
   }
   return biggestNetwork([...nodes.values()]);
+}
+
+// building outlines from map-data.js, each with a box around it so most
+// buildings can be ruled out quickly
+let buildings = null;
+function buildingOutlines() {
+  return MAP.bld.split("Z").map(shape => {
+    const nums = shape.replace(/[ML]/g, " ").trim().split(/\s+/).map(Number);
+    const points = [];
+    for (let i = 0; i + 1 < nums.length; i += 2) points.push([nums[i], nums[i + 1]]);
+    const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
+    return { points, left: Math.min(...xs), right: Math.max(...xs), top: Math.min(...ys), bottom: Math.max(...ys) };
+  }).filter(building => building.points.length >= 3);
+}
+
+// true if x, y is inside any building. draws a line out to the right and
+// counts how many walls it crosses: odd means inside, even means outside
+function insideBuilding(x, y) {
+  if (!buildings) buildings = buildingOutlines();
+  for (const { points, left, right, top, bottom } of buildings) {
+    if (x < left || x > right || y < top || y > bottom) continue;
+    let inside = false;
+    for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+      const [x1, y1] = points[i], [x2, y2] = points[j];
+      if ((y1 > y) !== (y2 > y) && x < x1 + (y - y1) * (x2 - x1) / (y2 - y1)) inside = !inside;
+    }
+    if (inside) return true;
+  }
+  return false;
 }
 
 // a few bits of path aren't joined to anything, so only keep the main network.

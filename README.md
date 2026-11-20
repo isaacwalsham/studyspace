@@ -17,7 +17,7 @@ Settings → About → **Reset all app data** starts again from the sign-in scre
 ## What works
 - **Find:** Filters and Sort sit side by side, the filters that are on show as chips underneath, and results are listed below. A big interactive map fills the rest of the screen: drag, scroll or pinch to zoom, and use the zoom buttons. Building names appear as you zoom in. The page never scrolls, only the results list does
 - **Space details:** tapping a pin or a result slides a card up over the map and highlights the pin. It shows busyness, every feature as an icon and a word, the match score and how it's worked out, and a quieter alternative when the space is busy
-- **Directions:** the route follows the real campus footpaths, found with A* search over the OpenStreetMap paths. A simulated walk follows it on the same map, warns you if the space fills up on the way, and asks how busy it is when you arrive. Walk times, Nearest sorting and the "quieter nearby" suggestion all use the real walking distance
+- **Directions:** the route follows the real campus footpaths, found with A* search over the OpenStreetMap paths. To keep it simple, routes never cut through buildings: any bit of path inside a building outline is left out. A simulated walk follows it on the same map, warns you if the space fills up on the way, and asks how busy it is when you arrive. Walk times, Nearest sorting and the "quieter nearby" suggestion all use the real walking distance
 - **Book a Room:** uses the full width of the screen. Pick the number of people and the day along the top, then filter and sort with the same toolbar as Find. Rooms show as cards with their match score and a strip of the day's free times. Picking a room slides the cards to the left and opens a panel on the right with its details and times, where you can book it (on phones the panel slides in over the screen). Confirming shows a summary modal, and Undo is available afterwards
 - **My Bookings:** upcoming bookings with directions and cancel (with undo), plus past bookings with "Book again"
 - **Live busyness:** report how busy a space is (with a confirmation, undo and change), or ask for an update (a simulated reply arrives)
@@ -61,7 +61,7 @@ For example, a space that's 20% busy, 6 minutes away and updated 3 minutes ago s
 | `js/helpers.js` | Icons, walk times, busyness, matching, the match score, booking days and times |
 | `js/components.js` | Shared building blocks: buttons, chips, tags, the filter and sort toolbar, modals, menus, toasts, banners |
 | `js/map.js` | Draws the campus map and makes it drag, zoom and respond to taps |
-| `js/routes.js` | Turns the OpenStreetMap footpaths into a graph and finds walking routes with A* search |
+| `js/routes.js` | Turns the OpenStreetMap footpaths into a graph, leaving out any path inside a building, and finds walking routes with A* search |
 | `js/screens/*.js` | One file per screen: start, find, book, bookings, settings, design |
 | | `app.js` also has `flipCards`, which makes cards slide to their new places when the layout changes |
 | `js/app.js` | Picks the screen from the address (e.g. `#/find/lib2`) and holds every button action |
