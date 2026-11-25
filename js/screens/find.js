@@ -57,7 +57,7 @@ function resultCard(space, showReasons, selectedId) {
     <span class="list-text">
       <strong>${space.name}</strong>
       <span class="muted">${space.building} · ${walkMins(space)} min walk</span>
-      ${reasons.length ? `<span class="reasons">${icon("alert", 14)} ${reasons.join(", ")}</span>` : ""}
+      ${reasons.length ? `<span class="reasons">${icon("alert", 14)} ${reasonsText(reasons)}</span>` : ""}
     </span>
     <span class="list-side">${busyTag(space)}${showReasons ? "" : scoreTag(space)}</span>
   </button>`;
@@ -89,7 +89,7 @@ function mapKey() {
 // lab 7 fix: icons have words, nothing relies on hover
 function featureList(space) {
   const features = [
-    ["quiet", ["Silent", "Quiet", "Some Talking", "Chatty", "Loud"][space.noise - 1]],
+    ["quiet", NOISE[space.noise - 1]],
     ["plug", space.sockets ? "Sockets" : "No Sockets"],
     ...(space.kind === "open" ? [["food", space.foodAllowed ? "Food Allowed" : "No Food"]] : []),
     ["sun", `${space.lighting} Light`],
@@ -103,7 +103,7 @@ function featureList(space) {
 
 // details card over the map
 function spaceCard(space) {
-  const missing = missingFilters(space, data.find);
+  const reasons = reasonsNotMatched(space, data.find);
   const isRoom = space.kind === "room";
 
   return `
@@ -117,11 +117,8 @@ function spaceCard(space) {
     <p class="small muted">${icon("refresh", 14)} ${updatedText(space)}</p>
     ${data.pending[space.id] ? notice("info", "Your update is being checked. It'll show here once it's approved.") : ""}
 
-    ${!isRoom && data.find.filters.length
-      ? notice(missing.length ? "warn" : "good", missing.length
-        ? `Doesn't have: ${missing.map(f => f.label.toLowerCase()).join(", ")}`
-        : "Has everything you asked for")
-      : ""}
+    ${!isRoom && reasons.length ? notice("warn", `Not a match: ${reasons.join(", ")}`) : ""}
+    ${!isRoom && !reasons.length && data.find.filters.length ? notice("good", "Has everything you asked for") : ""}
 
     <p>${space.about}</p>
 
@@ -141,7 +138,7 @@ function alternativeBox(space) {
   const other = nearbyAlternative(space);
   if (!other) return "";
   return `<div class="notice notice-info alt">${icon("info", 18)}
-    <span>It's busy here. <strong>${other.name}</strong> is quiet, and ${minsBetween(space, other)} min from ${space.name}.</span>
+    <span>It's ${busyLabel(space).text.toLowerCase()} here. <strong>${other.name}</strong> is quiet, and ${minsBetween(space, other)} min from ${space.name}.</span>
     ${btn("View", { size: "small", href: `#/find/${other.id}` })}
   </div>`;
 }

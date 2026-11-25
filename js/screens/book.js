@@ -91,7 +91,7 @@ function roomCard(room, showReasons, selectedId) {
       ...(room.screen ? [["monitor", "Screen"]] : []),
       ...(room.whiteboard ? [["pen", "Whiteboard"]] : []),
     ])}
-    ${reasons.length ? `<span class="reasons">${icon("alert", 14)} ${reasons.join(", ")}</span>` : ""}
+    ${reasons.length ? `<span class="reasons">${icon("alert", 14)} ${reasonsText(reasons)}</span>` : ""}
     ${slotStrip(room)}
   </button>`;
 }

@@ -554,7 +554,7 @@ function startWalk(id) {
     if (ui.walk.progress >= 0.5 && !ui.walk.alerted && data.settings.alerts && busyLabel(space).colour !== "green") {
       ui.walk.alerted = true;
       const other = nearbyAlternative(space);
-      if (other) showBanner(`${space.name} is filling up`, `${other.name} is quiet. Tap to see it.`, `#/find/${other.id}`);
+      if (other) showBanner(`${space.name} is ${busyLabel(space).text === "Full" ? "full" : "filling up"}`, `${other.name} is quiet. Tap to see it.`, `#/find/${other.id}`);
     }
 
     // arrived

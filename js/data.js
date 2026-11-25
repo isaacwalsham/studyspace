@@ -1,16 +1,29 @@
 // filters
 
-// test checks a space. forRooms means it shows on book a room too
+// noise 1 to 5 in words
+const NOISE = ["Silent", "Quiet", "Some Talking", "Chatty", "Loud"];
+
+// test checks a space. forRooms means it shows on book a room too.
+// missing is what the warning says when a space doesn't pass
 const FILTERS = [
-  { id: "quiet",       label: "Quiet",                   icon: "quiet",   forRooms: true,  test: s => s.noise <= 2 },
-  { id: "foodAllowed", label: "Food Allowed",            icon: "food",    forRooms: false, test: s => s.foodAllowed },
-  { id: "foodNearby",  label: "Food Nearby",             icon: "coffee",  forRooms: false, test: s => s.foodNearbyMin <= 3 },
-  { id: "sockets",     label: "Sockets",                 icon: "plug",    forRooms: true,  test: s => s.sockets },
-  { id: "natural",     label: "Natural Light",           icon: "sun",     forRooms: true,  test: s => s.lighting === "Natural" },
-  { id: "lowFoot",     label: "Not Many People Passing", icon: "steps",   forRooms: false, test: s => s.footfall === "Low" },
-  { id: "screen",      label: "Shared Screen",           icon: "monitor", forRooms: true,  test: s => s.screen },
-  { id: "whiteboard",  label: "Whiteboard",              icon: "pen",     forRooms: true,  test: s => s.whiteboard },
-  { id: "access",      label: "Step-Free Entrance",      icon: "access",  forRooms: true,  test: s => s.accessible },
+  { id: "quiet",       label: "Quiet",                   icon: "quiet",   forRooms: true,  test: s => s.noise <= 2,
+    missing: s => NOISE[s.noise - 1].toLowerCase() },
+  { id: "foodAllowed", label: "Food Allowed",            icon: "food",    forRooms: false, test: s => s.foodAllowed,
+    missing: () => "food not allowed" },
+  { id: "foodNearby",  label: "Food Nearby",             icon: "coffee",  forRooms: false, test: s => s.foodNearbyMin <= 3,
+    missing: s => `nearest food is ${s.foodNearbyMin} min away` },
+  { id: "sockets",     label: "Sockets",                 icon: "plug",    forRooms: true,  test: s => s.sockets,
+    missing: () => "no sockets" },
+  { id: "natural",     label: "Natural Light",           icon: "sun",     forRooms: true,  test: s => s.lighting === "Natural",
+    missing: () => "no natural light" },
+  { id: "lowFoot",     label: "Not Many People Passing", icon: "steps",   forRooms: false, test: s => s.footfall === "Low",
+    missing: s => s.footfall === "High" ? "lots of people passing" : "some people passing" },
+  { id: "screen",      label: "Shared Screen",           icon: "monitor", forRooms: true,  test: s => s.screen,
+    missing: () => "no shared screen" },
+  { id: "whiteboard",  label: "Whiteboard",              icon: "pen",     forRooms: true,  test: s => s.whiteboard,
+    missing: () => "no whiteboard" },
+  { id: "access",      label: "Step-Free Entrance",      icon: "access",  forRooms: true,  test: s => s.accessible,
+    missing: () => "stairs only" },
 ];
 
 // busy goes from 0 empty to 1 full
