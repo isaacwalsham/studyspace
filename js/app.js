@@ -160,11 +160,14 @@ function applySettings() {
   const dark = s.theme === "dark" || (s.theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   root.dataset.theme = dark ? "dark" : "light";
   root.dataset.accent = s.accent;
+  root.dataset.colourVision = s.colourBlind ? (s.colourBlindType ?? "default") : "default";
   root.classList.toggle("large-text", s.largeText);
   root.classList.toggle("high-contrast", s.highContrast);
   root.classList.toggle("reduce-motion", s.reduceMotion);
   // phone status bar follows the accent
-  $('meta[name="theme-color"]').content = ACCENTS.find(a => a.id === s.accent).hex;
+  $('meta[name="theme-color"]').content = root.dataset.colourVision === "default"
+    ? ACCENTS.find(a => a.id === s.accent).hex
+    : getComputedStyle(root).getPropertyValue("--accent").trim();
 }
 
 // follow the device when theme is auto
@@ -179,6 +182,14 @@ function toggleSetting(name) {
 
 function setAccent(id) {
   data.settings.accent = id;
+  saveData();
+  render();
+}
+
+function setColourBlindType(value) {
+  const s = ["protanopia", "deuteranopia", "tritanopia", "default"];
+  if (!s.includes(value)) return;
+  data.settings.colourBlindType = value;
   saveData();
   render();
 }

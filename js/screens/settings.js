@@ -1,6 +1,7 @@
 function settingsScreen() {
   const s = data.settings;
   const user = data.user;
+  const colourBlindType = s.colourBlindType ?? "default";
 
   return `<section class="page">
     ${pageHead("Settings")}
@@ -43,11 +44,20 @@ function settingsScreen() {
       </label>`}
     </div>
 
-    <h2>${icon("eye", 20)} Accessibility</h2>
+    <h2>${icon("eye", 20)} Accessibility</h2>           
     <div class="card group">
       ${settingRow("largeText", "Larger Text", "Makes all the text in the app bigger.")}
       ${settingRow("highContrast", "High Contrast", "Darker text and stronger borders.")}
       ${settingRow("reduceMotion", "Reduce Motion", "Turns off sliding and pulsing animations.")}
+      ${settingRow("colourBlind", "Colour Blind Mode", "Alters colours based on different types of colour blindness.")} 
+      <label class="row" for="colourBlindType">
+        <strong>Colour Blind Type</strong>
+        <select id="colourBlindType" class="input short" onchange="setColourBlindType(this.value)">
+          <option value="deuteranopia" ${colourBlindType === "deuteranopia" ? "selected" : ""}>Deuteranopia</option>
+          <option value="protanopia" ${colourBlindType === "protanopia" ? "selected" : ""}>Protanopia</option>
+          <option value="tritanopia" ${colourBlindType === "tritanopia" ? "selected" : ""}>Tritanopia</option>
+        </select>
+      </label>
     </div>
 
     <h2>${icon("bell", 20)} Notifications</h2>

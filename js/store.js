@@ -21,6 +21,8 @@ function freshData() {
       largeText: false,
       highContrast: false,
       reduceMotion: false,
+      colourBlind: false,
+      colourBlindType: "default",
       alerts: true,          // filling up alerts
     },
   };
