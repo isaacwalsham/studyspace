@@ -12,6 +12,7 @@ function freshData() {
 
     bookings: pastBookings(),
     reports: {},              // by space id
+    pending: {},              // updates waiting to be checked, by space id
 
     settings: {
       accent: "teal",        // an id from ACCENTS

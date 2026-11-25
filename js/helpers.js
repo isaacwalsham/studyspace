@@ -63,6 +63,7 @@ const ICONS = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/>',
   location: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
   bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4l2-2zM10 20.5a2 2 0 0 0 4 0"/>',
+  camera: '<path d="M4 8h3l1.6-2.5h6.8L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/>',
   eye: '<path d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/><circle cx="12" cy="12" r="3"/>',
   layers: '<path d="m12 3 9 5-9 5-9-5 9-5zM3 12.5l9 5 9-5M3 16.5l9 5 9-5"/>',
 };
@@ -122,7 +123,7 @@ function busyness(space) {
   const report = data.reports[space.id];
   if (report) {
     const minutes = Math.round((Date.now() - report.time) / 60000);
-    return { busy: report.busy, updatedMin: minutes, byYou: true };
+    return { busy: report.busy, updatedMin: minutes, byYou: true, photo: report.photo };
   }
   return { busy: space.busy, updatedMin: space.updatedMin, byYou: false };
 }
@@ -140,7 +141,7 @@ function busyLabel(space) {
 function updatedText(space) {
   const info = busyness(space);
   const when = info.updatedMin < 1 ? "just now" : `${info.updatedMin} min ago`;
-  return info.byYou ? `You updated this ${when}` : `Updated ${when}`;
+  return info.byYou ? `You updated this ${when}${info.photo ? ", photo checked" : ""}` : `Updated ${when}`;
 }
 
 // matching

@@ -194,6 +194,7 @@ function refreshModal() {
 }
 
 function closeModal() {
+  removePhoto();
   $("#modal").hidden = true;
   ui.modal = null;
   ui.report = null;
