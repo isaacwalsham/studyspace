@@ -70,7 +70,7 @@ function designScreen() {
 
     ${designBlock("Notices", "A coloured box with an icon, for a message inside a screen.", `
       ${notice("good", "Has everything you asked for")}
-      ${notice("warn", "Doesn't have: sockets")}
+      ${notice("warn", "Not a match: no sockets, some people passing")}
       ${notice("info", "It's busy here. A quieter space is 2 min away.")}`)}
 
     ${designBlock("Cards", "Every list item is a card with the same padding, border and corner. The coloured stripe on the left is its busyness.", `

@@ -174,11 +174,17 @@ function isBestMatch(space, prefs, filterIds = prefs.filters) {
 
 // why it isn't a best match
 function reasonsNotMatched(space, prefs) {
-  const reasons = missingFilters(space, prefs).map(filter => `no ${filter.label.toLowerCase()}`);
-  if (walkMins(space) > prefs.maxWalk) reasons.push(`${walkMins(space)} min walk`);
-  if (space.kind === "room" && freeSlots(space, bookDate()).length === 0) reasons.push("no free times");
+  const reasons = missingFilters(space, prefs).map(filter => filter.missing(space));
+  if (walkMins(space) > prefs.maxWalk) reasons.push(`${walkMins(space)} min walk (your limit is ${prefs.maxWalk})`);
+  if (space.kind === "room" && freeSlots(space, bookDate()).length === 0) reasons.push("no free times that day");
   if (space.kind === "open" && busyLabel(space).text === "Full") reasons.push("full right now");
   return reasons;
+}
+
+// "No sockets, some people passing"
+function reasonsText(reasons) {
+  const text = reasons.join(", ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 // the filter that brings back the most spaces if turned off
