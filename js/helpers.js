@@ -107,7 +107,12 @@ function startPlace() {
 
 // real route along the paths, at 80m a minute. see routes.js
 function walkMins(space) {
-  return Math.max(1, Math.round(walkRoute(space).metres / 80));
+  return minsBetween(startPlace(), space);
+}
+
+// walk between any two places
+function minsBetween(from, to) {
+  return Math.max(1, Math.round(findRoute(from, to).metres / 80));
 }
 
 // busyness

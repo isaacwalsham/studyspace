@@ -108,14 +108,12 @@ function spaceCard(space) {
 
   return `
     <header class="sheet-head">
-      <div>
-        <h2>${space.name}</h2>
-        ${facts([["building", space.building], ["walk", `${walkMins(space)} min walk`],
-          isRoom ? ["people", `Fits ${space.capacity}`] : ["people", `${space.seats} seats`]])}
-      </div>
+      <div><h2>${space.name}</h2></div>
       ${busyTag(space, true)}
       ${btn("", { kind: "ghost", icon: "close", href: "#/find", ariaLabel: "Close" })}
     </header>
+    ${facts([["building", space.building], ["walk", `${walkMins(space)} min walk`],
+      isRoom ? ["people", `Fits ${space.capacity}`] : ["people", `${space.seats} seats`]])}
     <p class="small muted">${icon("refresh", 14)} ${updatedText(space)}</p>
 
     ${!isRoom && data.find.filters.length
@@ -125,8 +123,6 @@ function spaceCard(space) {
       : ""}
 
     <p>${space.about}</p>
-    ${featureList(space)}
-    ${isRoom ? "" : scoreBreakdown(space)}
 
     <div class="actions">
       ${btn("Directions", { kind: "primary", icon: "walk", href: `#/find/${space.id}/go` })}
@@ -134,7 +130,9 @@ function spaceCard(space) {
       ${btn("Update How Busy", { icon: "people", onclick: `openReport('${space.id}')` })}
       ${btn("Ask for an Update", { icon: "refresh", onclick: `askForUpdate('${space.id}')` })}
     </div>
-    ${["orange", "red"].includes(busyLabel(space).colour) ? alternativeBox(space) : ""}`;
+    ${["orange", "red"].includes(busyLabel(space).colour) ? alternativeBox(space) : ""}
+    ${featureList(space)}
+    ${isRoom ? "" : scoreBreakdown(space)}`;
 }
 
 // when a space is busy, suggest the nearest quiet one
@@ -142,7 +140,7 @@ function alternativeBox(space) {
   const other = nearbyAlternative(space);
   if (!other) return "";
   return `<div class="notice notice-info alt">${icon("info", 18)}
-    <span>It's busy here. <strong>${other.name}</strong> is quiet and ${walkMins(other)} min away.</span>
+    <span>It's busy here. <strong>${other.name}</strong> is quiet, and ${minsBetween(space, other)} min from ${space.name}.</span>
     ${btn("View", { size: "small", href: `#/find/${other.id}` })}
   </div>`;
 }
