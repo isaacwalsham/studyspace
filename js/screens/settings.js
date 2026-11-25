@@ -22,7 +22,7 @@ function settingsScreen() {
 
     <h2>${icon("palette", 20)} Appearance</h2>
     <div class="card group">
-      <div class="row">
+      <div class="row row-wrap">
         <span class="list-text"><strong>Accent Colour</strong><span class="muted small">Used for buttons, tabs and selected things</span></span>
         ${swatches(s.accent, "setAccent")}
       </div>

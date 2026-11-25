@@ -89,6 +89,38 @@ function scaleMarkers(svg) {
   svg.querySelectorAll(".marker").forEach(group => {
     group.setAttribute("transform", `translate(${group.dataset.x} ${group.dataset.y}) scale(${k})`);
   });
+
+  // labels only start or stop overlapping when the zoom changes
+  if (svg.dataset.zoom !== k.toFixed(4)) {
+    svg.dataset.zoom = k.toFixed(4);
+    hideCrowdedLabels(svg);
+  }
+}
+
+// hides labels that would cover another label or pin. the selected space goes
+// first, then best matches by score, then building names
+function hideCrowdedLabels(svg) {
+  const box = element => element.getBoundingClientRect();
+  const overlaps = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+
+  const pins = [...svg.querySelectorAll(".pin")].map(group => ({
+    label: group.querySelector(".pin-label"),
+    dot: box(group.querySelector(".pin-dot")),
+    rank: group.querySelector(".selected") ? Infinity : matchScore(findSpace(group.dataset.id)),
+  }));
+  const named = pins.filter(pin => pin.label).sort((a, b) => b.rank - a.rank);
+  const places = [...svg.querySelectorAll(".place-label")].map(label => ({ label, dot: null }));
+
+  const shown = [];
+  for (const { label, dot } of [...named, ...places]) {
+    const area = box(label);
+    if (!area.width) continue; // not drawn at this zoom
+    const crowded = shown.some(other => overlaps(area, other))
+      || pins.some(pin => pin.dot !== dot && overlaps(area, pin.dot));
+    const keep = !crowded || label.classList.contains("selected");
+    label.classList.toggle("crowded", !keep);
+    if (keep) shown.push(area);
+  }
 }
 
 // applies ui.map to the svg
@@ -135,7 +167,7 @@ function motionOff() {
 // slides the map so the space sits above the details card
 function panTo(space) {
   const svg = $("#map");
-  if (!svg) return;
+  if (!svg || !svg.clientWidth) return;
   const from = { ...ui.map };
 
   // zoom in to 420m wide at most
@@ -147,8 +179,40 @@ function panTo(space) {
   const visibleHeight = box.height * perPixel;
 
   // 28% down so the card doesn't cover it
-  const to = { w, h, x: space.x - w / 2, y: space.y + visibleHeight * 0.22 - h / 2 };
+  slideMap(svg, { w, h, x: space.x - w / 2, y: space.y + visibleHeight * 0.22 - h / 2 });
+}
 
+// fits the whole route into the part of the map above the directions card
+function fitRoute(space) {
+  const svg = $("#map");
+  if (!svg || !svg.clientWidth) return;
+  const points = walkRoute(space).points;
+  const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
+  const left = Math.min(...xs), right = Math.max(...xs), top = Math.min(...ys), bottom = Math.max(...ys);
+
+  // the space we have, in pixels: below the zoom buttons and above the card,
+  // with room around it for pins and labels
+  const box = svg.getBoundingClientRect();
+  const sheet = $(".sheet");
+  const covered = sheet ? sheet.offsetHeight + 40 : 0;
+  const roomTop = $(".map-controls").offsetHeight + 50;
+  const roomBottom = box.height - covered - 30;
+  const perPixel = Math.max((right - left) / Math.max(1, box.width - 160),
+    (bottom - top) / Math.max(80, roomBottom - roomTop));
+
+  const shape = ui.map.h / ui.map.w;
+  const perWidth = Math.max(1 / box.width, shape / box.height);
+  const w = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, perPixel / perWidth));
+  const h = w * shape;
+
+  // put the middle of the route in the middle of that space
+  const offset = (roomTop + roomBottom) / 2 - box.height / 2;
+  slideMap(svg, { w, h, x: (left + right) / 2 - w / 2, y: (top + bottom) / 2 - offset * w * perWidth - h / 2 });
+}
+
+// moves to a new view, smoothly unless motion is off
+function slideMap(svg, to) {
+  const from = { ...ui.map };
   if (motionOff()) {
     ui.map = to;
     applyView(svg);

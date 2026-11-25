@@ -141,7 +141,7 @@ function filterModal(listName) {
     body: `
       <h3>Walking Distance</h3>
       ${segmented(WALK_OPTIONS.map(o => ({ value: o.min, label: o.label })), prefs.maxWalk, v => `setWalk('${listName}', ${v})`, "Walking distance")}
-      <p class="small muted gap-top">From ${startPlace().name} · <a href="#/settings" onclick="closeModal()">change</a></p>
+      <p class="small muted gap-top">From ${startPlace().name} · <a class="text-link" href="#/settings" onclick="closeModal()">change</a></p>
       <h3>What You Need</h3>
       <div class="tile-grid">${tiles}</div>`,
     footer: `
@@ -243,6 +243,7 @@ function showToast(message, undo) {
     ${undo ? `<button class="toast-undo" id="toast-undo">Undo</button>` : ""}
     ${btn("", { kind: "ghost", icon: "close", size: "small", onclick: "hideToast()", ariaLabel: "Close message" })}`;
   toast.hidden = false;
+  makeRoomForToast(toast.offsetHeight + 24);
 
   if (undo) {
     $("#toast-undo").onclick = () => { undo(); hideToast(); showToast("Undone"); };
@@ -253,6 +254,14 @@ function showToast(message, undo) {
 
 function hideToast() {
   $("#toast").hidden = true;
+  makeRoomForToast(0);
+}
+
+// the css uses this to keep cards and buttons clear of the toast
+function makeRoomForToast(height) {
+  document.documentElement.style.setProperty("--toast", `${height}px`);
+  const svg = $("#map");
+  if (svg) scaleMarkers(svg);
 }
 
 // live alert banner, tapping it opens the address

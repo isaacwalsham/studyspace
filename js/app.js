@@ -86,9 +86,13 @@ function render() {
     $("#find-panel").scrollTop = scrolled;
     setupMap();
 
-    // a newly opened space: move the map to it
-    if (id && id !== ui.shownSpace && findSpace(id)) panTo(findSpace(id));
-    ui.shownSpace = id;
+    // a newly opened space: move the map to it, or show the whole route
+    const showing = id && findSpace(id) ? `${id} ${mode || ""}` : null;
+    if (showing && showing !== ui.shownSpace) {
+      if (mode === "go") fitRoute(findSpace(id));
+      else panTo(findSpace(id));
+    }
+    ui.shownSpace = showing;
   }
 }
 
@@ -266,6 +270,8 @@ function askToSignOut() {
     onConfirm: () => {
       data.user = null;
       data.setupDone = false;
+      hideToast();
+      hideBanner();
       saveData();
       go("#/find");
       render();
@@ -283,6 +289,8 @@ function askToReset() {
     danger: true,
     onConfirm: () => {
       data = freshData();
+      hideToast();
+      hideBanner();
       saveData();
       go("#/find");
       render();
@@ -562,4 +570,6 @@ document.addEventListener("keydown", event => {
   else if (currentRoute().id) go(`#/${currentRoute().screen}`);
 });
 
+// opening a link straight to a space on a phone shows the map
+if (currentRoute().screen === "find" && currentRoute().id && isNarrow()) ui.findView = "map";
 render();
