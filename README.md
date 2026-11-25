@@ -15,18 +15,18 @@ Sign in with any email ending in `@uea.ac.uk` and any password. **This is a prot
 Settings → About → **Reset all app data** starts again from the sign-in screen.
 
 ## What works
-- **Find:** Filters and Sort sit side by side, the filters that are on show as chips underneath, and results are listed below. A big interactive map fills the rest of the screen: drag, scroll or pinch to zoom, and use the zoom buttons. Building names appear as you zoom in. The page never scrolls, only the results list does
+- **Find:** Filters and Sort sit side by side, the filters that are on show as chips underneath, and results are listed below. A big interactive map fills the rest of the screen: drag, scroll or pinch to zoom, and use the zoom buttons. Building names appear as you zoom in, and labels that would overlap are hidden until there's room. The map stops at the edge of campus, with Colney Lane to the west. The page never scrolls, only the results list does
 - **Space details:** tapping a pin or a result slides a card up over the map and highlights the pin. It shows busyness, every feature as an icon and a word, the match score and how it's worked out, and a quieter alternative when the space is busy
 - **Directions:** the route follows the real campus footpaths, found with A* search over the OpenStreetMap paths. To keep it simple, routes never cut through buildings: any bit of path inside a building outline is left out. A simulated walk follows it on the same map, warns you if the space fills up on the way, and asks how busy it is when you arrive. Walk times, Nearest sorting and the "quieter nearby" suggestion all use the real walking distance
 - **Book a Room:** uses the full width of the screen. Pick the number of people and the day along the top, then filter and sort with the same toolbar as Find. Rooms show as cards with their match score and a strip of the day's free times. Picking a room slides the cards to the left and opens a panel on the right with its details and times, where you can book it (on phones the panel slides in over the screen). Confirming shows a summary modal, and Undo is available afterwards
 - **My Bookings:** upcoming bookings with directions and cancel (with undo), plus past bookings with "Book again"
-- **Live busyness:** report how busy a space is (with a confirmation, undo and change), or ask for an update (a simulated reply arrives)
+- **Live busyness:** report how busy a space is, with an optional photo. Every update is checked by a pretend moderator for a few seconds, and the busyness only changes once it's approved. Undo and change work at any point. The photo is only shown on your device and is never saved. You can also ask for an update (a simulated reply arrives)
 - **Settings:** profile picture (initials or an icon, in any colour), display name, accent colour, light/dark/auto theme, simulated location or a chosen starting point (walk times update), larger text, high contrast, reduce motion, filling-up alerts, about, and reset
 - **Design system** (Settings → About → Design system, or `#/design`): every shared button, chip, tag, card, modal, menu, toast and banner, working, with when to use each one
 
 **Writing style:** titles, buttons and labels use title case ("Book a Room"). Sentences, like descriptions and messages, use sentence case.
 
-**Seed data:** 18 open study spaces and 12 bookable rooms, each placed on its real building using OpenStreetMap outlines. Busyness, seats and taken times are made up. Taken times are "seeded" from the room and date, so they stay the same every time you look.
+**Seed data:** 28 open study spaces and 12 bookable rooms, each placed on its real building using OpenStreetMap outlines. Busyness, seats and taken times are made up. Taken times are "seeded" from the room and date, so they stay the same every time you look.
 
 ## How "Best match" works
 It has two steps, so it's easy to explain:

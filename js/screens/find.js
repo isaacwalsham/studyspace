@@ -115,6 +115,7 @@ function spaceCard(space) {
     ${facts([["building", space.building], ["walk", `${walkMins(space)} min walk`],
       isRoom ? ["people", `Fits ${space.capacity}`] : ["people", `${space.seats} seats`]])}
     <p class="small muted">${icon("refresh", 14)} ${updatedText(space)}</p>
+    ${data.pending[space.id] ? notice("info", "Your update is being checked. It'll show here once it's approved.") : ""}
 
     ${!isRoom && data.find.filters.length
       ? notice(missing.length ? "warn" : "good", missing.length
@@ -185,10 +186,15 @@ function reportModal() {
   const space = findSpace(ui.report.id);
 
   if (ui.report.done) {
+    const level = LEVELS[ui.report.level].label;
+    const waiting = data.pending[space.id];
     return modalFrame({
-      title: "Thanks, Update Sent",
-      iconName: "check",
-      body: `<p>${space.name} now shows as <strong>${LEVELS[ui.report.level].label}</strong> for everyone.</p>`,
+      title: waiting ? "Thanks, Your Update Is Being Checked" : "Update Approved",
+      iconName: waiting ? "clock" : "check",
+      body: waiting
+        ? `<p>A moderator is checking your update${waiting.photo ? " and photo" : ""}. ${space.name} will show as <strong>${level}</strong> once it's approved.</p>
+          <p class="small muted">You can close this. We'll tell you when it's done. In this prototype the check is simulated.</p>`
+        : `<p>${space.name} now shows as <strong>${level}</strong> for everyone.</p>`,
       footer: `${btn("Undo", { onclick: "undoReport()" })}
         ${btn("Change My Answer", { onclick: "changeReport()" })}
         ${btn("Done", { kind: "primary", onclick: "closeModal()" })}`,
@@ -202,8 +208,25 @@ function reportModal() {
         `<button class="tile ${ui.report.level === index ? "on" : ""}" aria-pressed="${ui.report.level === index}" onclick="pickLevel(${index})">
           <i class="key-dot stripe-${["green", "green", "amber", "orange", "red"][index]}"></i><span>${level.label}</span>
           ${ui.report.level === index ? icon("check", 18) : ""}
-        </button>`).join("")}</div>`,
+        </button>`).join("")}</div>
+      ${photoPicker(space)}`,
     footer: `${btn("Cancel", { onclick: "closeModal()" })}
       ${btn("Send Update", { kind: "primary", onclick: "sendReport()", disabled: ui.report.level === null })}`,
   });
+}
+
+// optional photo, to back up the update. it's only ever shown on this device
+function photoPicker(space) {
+  const { photo, photoError } = ui.report;
+  return `<h3>Photo (optional)</h3>
+    <p class="small muted">A photo helps the moderator check your update. It isn't shared, but please avoid people's faces.</p>
+    ${photo
+      ? `<div class="photo-preview">
+          <img src="${photo}" alt="Your photo of ${safe(space.name)}">
+          ${btn("Remove Photo", { size: "small", icon: "close", onclick: "removePhoto()" })}
+        </div>`
+      : `<label class="btn btn-secondary photo-btn">${icon("camera", 18)}<span>Add a Photo</span>
+          <input type="file" accept="image/*" onchange="addPhoto(this)">
+        </label>`}
+    <p class="error small" role="alert" ${photoError ? "" : "hidden"}>${photoError || ""}</p>`;
 }

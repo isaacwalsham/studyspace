@@ -5,6 +5,9 @@ const HOME_VIEW = { x: 170, y: 230, w: 680, h: 340 };
 const MIN_WIDTH = 120;
 const MAX_WIDTH = 1400;
 
+// how far the map can be moved: campus, plus colney lane to the west
+const BOUNDS = { left: -560, right: 1250, top: -330, bottom: 1200 };
+
 // minor labels show below this width
 const SHOW_ALL_NAMES = 480;
 
@@ -45,8 +48,10 @@ function drawMap({ spaces = [], selected = null, route = null }) {
     <path class="m-green" d="${MAP.green}"/>
     <path class="m-pitch" d="${MAP.pitch}"/>
     <path class="m-water" d="${MAP.water}"/>
+    <path class="m-green" d="${MAP.islands}"/>
     <path class="m-service" d="${MAP.service}"/>
     <path class="m-road" d="${MAP.road}"/>
+    <path class="m-road" d="${MAP.lane}"/>
     <path class="m-path" d="${MAP.path}"/>
     <path class="m-building" d="${MAP.bld}"/>
     ${names}${routeLine}${pins}${you}${walker}
@@ -123,8 +128,26 @@ function hideCrowdedLabels(svg) {
   }
 }
 
+// keeps what's on screen inside BOUNDS. if more than that fits on screen, it's centred
+function keepInBounds(svg) {
+  const v = ui.map;
+  const box = svg.getBoundingClientRect();
+  if (!box.width) return;
+  const perPixel = Math.max(v.w / box.width, v.h / box.height);
+  // a card covers the bottom of the map, so allow that much further down
+  const sheet = $(".sheet");
+  const bottom = BOUNDS.bottom + (sheet ? sheet.offsetHeight * perPixel : 0);
+  const limit = (middle, seen, low, high) => seen >= high - low
+    ? (low + high) / 2
+    : Math.min(high - seen / 2, Math.max(low + seen / 2, middle));
+
+  v.x = limit(v.x + v.w / 2, box.width * perPixel, BOUNDS.left, BOUNDS.right) - v.w / 2;
+  v.y = limit(v.y + v.h / 2, box.height * perPixel, BOUNDS.top, bottom) - v.h / 2;
+}
+
 // applies ui.map to the svg
 function applyView(svg) {
+  keepInBounds(svg);
   const v = ui.map;
   svg.setAttribute("viewBox", `${v.x} ${v.y} ${v.w} ${v.h}`);
   svg.classList.toggle("zoomed-in", v.w < SHOW_ALL_NAMES);
@@ -237,7 +260,7 @@ function slideMap(svg, to) {
 function setupMap() {
   const svg = $("#map");
   if (!svg) return;
-  scaleMarkers(svg);
+  applyView(svg);
 
   const pointers = new Map(); // fingers or mouse currently down
   let moved = 0;              // to tell a drag from a tap
@@ -310,5 +333,5 @@ function setupMap() {
 // keep markers the right size on resize
 window.addEventListener("resize", () => {
   const svg = $("#map");
-  if (svg) scaleMarkers(svg);
+  if (svg) applyView(svg);
 });

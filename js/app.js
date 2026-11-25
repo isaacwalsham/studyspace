@@ -428,7 +428,7 @@ function removeBooking(id) {
 
 function openReport(id) {
   // keep the old report for undo
-  ui.report = { id, level: null, done: false, before: data.reports[id] || null };
+  ui.report = { id, level: null, done: false, photo: null, photoError: "", before: data.reports[id] || null };
   openModal(reportModal);
 }
 
@@ -437,21 +437,69 @@ function pickLevel(index) {
   refreshModal();
 }
 
-// saves the report, then shows the confirmation step
+// biggest photo allowed, in bytes
+const MAX_PHOTO = 10 * 1024 * 1024;
+
+// shows a preview of the picked photo
+function addPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  ui.report.photoError = !file.type.startsWith("image/") ? "That isn't a photo. Pick an image file."
+    : file.size > MAX_PHOTO ? "That photo is too big. Pick one under 10 MB." : "";
+  if (!ui.report.photoError) ui.report.photo = URL.createObjectURL(file);
+  refreshModal();
+}
+
+function removePhoto() {
+  if (ui.report && ui.report.photo) URL.revokeObjectURL(ui.report.photo);
+  if (ui.report) ui.report.photo = null;
+  refreshModal();
+}
+
+// how long the pretend moderator takes
+const CHECK_TIME = 6000;
+
+// sends the update to be checked, then shows the confirmation step.
+// the busyness only changes once it's approved
 function sendReport() {
   const id = ui.report.id;
-  data.reports[id] = { busy: LEVELS[ui.report.level].busy, time: Date.now() };
+  data.pending[id] = { busy: LEVELS[ui.report.level].busy, time: Date.now(), photo: Boolean(ui.report.photo) };
   saveData();
   ui.report.done = true;
+  removePhoto(); // only needed for the check
+  waitForCheck(id);
 
   // back to the details if they came from directions
   if (ui.walk && ui.walk.id === id) go(`#/find/${id}`);
   else render();
 }
 
+// approves it after the rest of the wait, also used after a reload
+function waitForCheck(id) {
+  const { time } = data.pending[id];
+  setTimeout(() => approveUpdate(id, time), Math.max(0, time + CHECK_TIME - Date.now()));
+}
+
+function approveUpdate(id, time) {
+  const update = data.pending[id];
+  if (!update || update.time !== time) return; // undone, or a newer one was sent
+  data.reports[id] = { busy: update.busy, time: Date.now(), photo: update.photo };
+  delete data.pending[id];
+  saveData();
+  render();
+
+  // if the modal is still open it says so instead
+  const space = findSpace(id);
+  const stillOpen = ui.report && ui.report.id === id && ui.report.done;
+  if (data.user && !stillOpen) {
+    showBanner("Your update was approved", `${space.name} now shows as ${busyLabel(space).text.toLowerCase()}.`, `#/find/${id}`);
+  }
+}
+
 // puts the old busyness back and closes the modal
 function undoReport() {
   const { id, before } = ui.report;
+  delete data.pending[id];
   if (before) data.reports[id] = before;
   else delete data.reports[id];
   saveData();
@@ -569,6 +617,9 @@ document.addEventListener("keydown", event => {
   else if (!$("#modal").hidden) closeModal();
   else if (currentRoute().id) go(`#/${currentRoute().screen}`);
 });
+
+// carry on with any checks from before a reload
+Object.keys(data.pending).forEach(waitForCheck);
 
 // opening a link straight to a space on a phone shows the map
 if (currentRoute().screen === "find" && currentRoute().id && isNarrow()) ui.findView = "map";
