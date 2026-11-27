@@ -19,6 +19,8 @@ const TABS = [
   { screen: "book",     icon: "calendarPlus", label: "Book a Room" },
   { screen: "bookings", icon: "ticket",       label: "My Bookings" },
   { screen: "settings", icon: "gear",         label: "Settings" },
+  { screen: "FAQ", icon: "list", label: "FAQ"},
+  {screen: "About", icon: "people", label: "About Us"},
 ];
 
 // moving between screens
@@ -64,6 +66,8 @@ function render() {
   else if (screen === "bookings") html = bookingsScreen();
   else if (screen === "settings") html = settingsScreen();
   else if (screen === "design") html = designScreen();
+  else if (screen === "FAQ") html = faqScreen();
+  else if (screen === "About") html = aboutScreen();
   else html = notFound();
 
   $("#main").innerHTML = html;
