@@ -11,6 +11,8 @@ const ui = {
   walk: null,            // fake walk in progress
   last: {},              // last screen and id drawn
   entering: false,       // just opened, so animate once
+  tour: null,            // the page tour showing: { screen, steps, step }, or null
+  tip: null,             // task tip opened with the ? button
 };
 
 // tabs: address, icon, label
@@ -19,8 +21,6 @@ const TABS = [
   { screen: "book",     icon: "calendarPlus", label: "Book a Room" },
   { screen: "bookings", icon: "ticket",       label: "My Bookings" },
   { screen: "settings", icon: "gear",         label: "Settings" },
-  { screen: "FAQ", icon: "list", label: "FAQ"},
-  {screen: "About", icon: "people", label: "About Us"},
 ];
 
 // moving between screens
@@ -59,13 +59,15 @@ function render() {
   // sign in and setup come first
   const ready = Boolean(data.user && data.setupDone);
   let html;
-  if (!data.user) html = signInScreen();
+  // terms and privacy can be read before signing in
+  if (screen === "terms") html = termsScreen();
+  else if (screen === "privacy") html = privacyScreen();
+  else if (!data.user) html = signInScreen();
   else if (!data.setupDone) html = setupScreen();
   else if (screen === "find") html = findScreen(id && findSpace(id) ? id : null, mode);
   else if (screen === "book") html = bookScreen(id);
   else if (screen === "bookings") html = bookingsScreen();
   else if (screen === "settings") html = settingsScreen();
-  else if (screen === "design") html = designScreen();
   else if (screen === "FAQ") html = faqScreen();
   else if (screen === "About") html = aboutScreen();
   else html = notFound();
@@ -85,6 +87,11 @@ function render() {
 
   // keep an open modal up to date
   refreshModal();
+
+  // the first time a page is opened, show its tour
+  const newTour = ready && !id && maybeStartTour(screen);
+  drawTour();
+  if (newTour) focusTour();
 
   if (onFind) {
     $("#find-panel").scrollTop = scrolled;
@@ -134,7 +141,8 @@ function drawTabs(current) {
   if (!current) return;
   const upcoming = data.bookings.filter(b => !isPast(b)).length;
   nav.innerHTML = TABS.map(tab => {
-    const on = tab.screen === current || (tab.screen === "settings" && current === "design");
+    // faq and about us are opened from settings, so settings stays lit
+    const on = tab.screen === current || (tab.screen === "settings" && ["FAQ", "About"].includes(current));
     return `<a href="#/${tab.screen}" class="${on ? "on" : ""}" ${on ? `aria-current="page"` : ""}>
       ${icon(tab.icon, 22)}<span>${tab.label}</span>
       ${tab.screen === "bookings" && upcoming ? `<span class="tab-badge">${upcoming}</span>` : ""}
@@ -168,7 +176,9 @@ function applySettings() {
   const dark = s.theme === "dark" || (s.theme === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   root.dataset.theme = dark ? "dark" : "light";
   root.dataset.accent = s.accent;
-  root.dataset.colourVision = s.colourBlind ? (s.colourBlindType ?? "default") : "default";
+  // older saves have "default", which the dropdown shows as deuteranopia
+  const type = s.colourBlindType === "default" ? "deuteranopia" : s.colourBlindType;
+  root.dataset.colourVision = s.colourBlind ? type : "default";
   root.classList.toggle("large-text", s.largeText);
   root.classList.toggle("high-contrast", s.highContrast);
   root.classList.toggle("reduce-motion", s.reduceMotion);
@@ -189,6 +199,7 @@ function toggleSetting(name) {
 }
 
 function setAccent(id) {
+  if (data.settings.colourBlind) return; // the colour blind palette sets the accent
   data.settings.accent = id;
   saveData();
   render();
@@ -259,6 +270,7 @@ function signIn(event) {
   render();
 }
 
+// find's tour starts once it's drawn
 function finishSetup() {
   data.setupDone = true;
   saveData();
@@ -617,7 +629,8 @@ $("#modal").addEventListener("click", event => {
 // escape closes the menu, then the modal, then the card
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
-  if (ui.menu) { ui.menu = null; render(); }
+  if (ui.tour) endTour();
+  else if (ui.menu) { ui.menu = null; render(); }
   else if (!$("#modal").hidden) closeModal();
   else if (currentRoute().id) go(`#/${currentRoute().screen}`);
 });

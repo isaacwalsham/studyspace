@@ -5,6 +5,8 @@ function freshData() {
   return {
     user: null,        // set on sign in
     setupDone: false,  // picked their needs after sign in
+    toursSeen: [],     // pages whose tour has been seen or skipped
+    seenTips: [],      // task tips already closed, ids from TIPS
 
     // find and book a room keep separate filters
     find: { filters: [], maxWalk: 10, sort: "best" },
@@ -23,7 +25,7 @@ function freshData() {
       highContrast: false,
       reduceMotion: false,
       colourBlind: false,
-      colourBlindType: "default",
+      colourBlindType: "deuteranopia",
       alerts: true,          // filling up alerts
     },
   };

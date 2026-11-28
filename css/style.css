@@ -241,17 +241,23 @@ a { color: var(--accent-text); }
 .chip-on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
 
 /* equal height tiles */
-.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); grid-auto-rows: 1fr; gap: 8px; }
+.tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 1fr)); grid-auto-rows: 1fr; gap: 8px; }
 .tile-grid.left { text-align: left; margin-top: 1rem; }
 .tile {
-  display: flex; align-items: center; gap: 10px;
-  min-height: 52px; padding: 10px 14px; width: 100%;
+  /* icon, label and tick each have their own column, and the tick's is
+     always there, so picking a tile never makes its label wrap */
+  display: grid; grid-template-columns: 34px 1fr 18px; align-items: center; gap: 10px;
+  min-height: 60px; padding: 10px 12px; width: 100%;
   border: 2px solid var(--line); border-radius: 12px;
-  background: var(--surface); color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+  background: var(--surface); color: var(--ink); font: inherit; font-weight: 500; line-height: 1.3; text-align: left; cursor: pointer;
 }
-.tile span { flex: 1; }
+.tile > :first-child { justify-self: center; }
+/* the icon sits in a small rounded square */
+.tile > .icon:first-child { box-sizing: content-box; padding: 7px; border-radius: 9px; background: var(--surface-2); color: var(--muted); }
 .tile:hover { border-color: var(--line-strong); }
-.tile.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 700; }
+/* picked is shown by the colour, border and tick, not bold text, which is wider */
+.tile.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+.tile.on > .icon:first-child { background: var(--accent); color: var(--on-accent); }
 
 .segmented { display: flex; padding: 4px; gap: 4px; background: var(--surface-2); border-radius: 12px; }
 .segmented button {
@@ -276,6 +282,8 @@ a { color: var(--accent-text); }
 .swatch { position: relative; width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--surface); box-shadow: 0 0 0 1px var(--line-strong);
   display: grid; place-items: center; color: #fff; cursor: pointer; }
 .swatch.on { box-shadow: 0 0 0 2px var(--ink); }
+/* greyed out while colour blind mode sets the colours */
+.swatches-off .swatch { filter: grayscale(1); opacity: .4; cursor: not-allowed; }
 
 /* padding makes it easier to tap */
 .text-link { display: inline-block; padding: 12px 8px; margin: -12px -8px; }
@@ -419,6 +427,14 @@ a { color: var(--accent-text); }
 .page { max-width: 780px; margin: 0 auto; padding: 20px 16px 28px; }
 .page.wide { max-width: 980px; }
 .page.narrow { max-width: 540px; }
+.page.setup { max-width: 720px; }
+/* minmax(0, 1fr) lets the columns shrink below their text's width, so they never run off a phone */
+.page.setup .tile-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 599px) {
+  .page.setup .tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .page.setup .tile { grid-template-columns: 30px 1fr 16px; gap: 8px; padding: 8px 10px; }
+  .page.setup .tile > .icon:first-child { padding: 5px; }
+}
 .page.centre { text-align: center; margin-top: 3vh; }
 .page.centre .form { text-align: left; }
 .page-head { margin-bottom: 1rem; }
@@ -602,6 +618,12 @@ a { color: var(--accent-text); }
 .row-wrap .list-text { flex: 1 1 220px; }
 .link-row { color: inherit; text-decoration: none; }
 .link-row:hover { background: var(--surface-2); }
+/* replay the tour is a button that looks like the link rows */
+button.link-row { width: 100%; background: none; border: 0; border-bottom: 1px solid var(--line); font: inherit; text-align: left; cursor: pointer; }
+/* a setting that only works when another one is on */
+.row-off { opacity: .5; }
+/* buttons side by side at the bottom of a card */
+.row-buttons { justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
 .page h2 .icon { color: var(--accent-text); }
 
 /* design system page */
@@ -682,3 +704,77 @@ a { color: var(--accent-text); }
 @media (max-width: 420px) {
   .toolbar .menu-wrap .toolbar-btn > .icon:first-child { display: none; }
 }
+
+
+/* terms and privacy, laid out like the physique pilot legal pages */
+.legal-line { margin: 0; text-align: center; }
+.legal { max-width: 1180px; }
+.legal-head { border-bottom: 1px solid var(--line); padding-bottom: 1.5rem; margin: .8rem 0 1.5rem; }
+.legal-head h1 { font-size: clamp(2rem, 5vw, 3rem); margin: .2rem 0 .4rem; }
+.legal-meta { color: var(--muted); font-size: .85rem; }
+.legal-meta strong { color: var(--ink); }
+/* numbered contents, in columns when there's room */
+.legal-contents { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 1rem; }
+.legal-contents-title { font-size: .75rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.legal-contents ol { list-style: none; padding: 0; margin: 0; columns: 3 220px; column-gap: 24px; }
+.legal-contents li { break-inside: avoid; }
+.legal-contents .link-btn { display: flex; gap: 10px; width: 100%; padding: 6px 0; text-align: left; color: var(--ink); font-weight: 500; }
+.legal-contents .link-btn:hover { color: var(--accent-text); }
+.legal-num { color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; }
+/* one section per row: heading on the left, writing on the right on wide screens */
+.legal-section { display: grid; gap: 4px 40px; padding: 1.6rem 0; border-top: 1px solid var(--line); scroll-margin-top: calc(var(--top) + 12px); }
+.legal-section:first-of-type { border-top: 0; }
+.legal-section h2 { margin: 0; gap: 10px; align-items: baseline; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .05em; }
+.legal-body { max-width: 76ch; line-height: 1.7; }
+.legal-body p { margin: 0 0 .8rem; }
+.legal-body ul { margin: 0 0 .8rem; padding-left: 1.3rem; }
+.legal-body li { margin-bottom: .35rem; }
+.legal-body li::marker { color: var(--accent-text); }
+.legal-note { background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 var(--radius-small) var(--radius-small) 0; padding: 12px 16px; font-weight: 600; }
+.legal-table { width: 100%; border-collapse: collapse; margin-bottom: .8rem; font-size: .92rem; }
+.legal-table th, .legal-table td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+.legal-table th { background: var(--surface-2); font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; }
+.legal-foot { border-top: 1px solid var(--line); padding-top: 1.2rem; margin-top: .4rem; }
+.legal-made { color: var(--muted); font-size: .8rem; }
+@media (min-width: 900px) {
+  .legal-section { grid-template-columns: 300px 1fr; }
+}
+
+/* task help: ? button and the tip it opens */
+.help-head { display: flex; align-items: center; gap: 8px; }
+.help-btn { position: relative; flex: none; width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--accent-text);
+  background: var(--surface); color: var(--accent-text); font: 700 .85rem/1 inherit; cursor: pointer; }
+.help-btn[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* bigger tap area than it looks */
+.help-btn::after { content: ""; position: absolute; inset: -9px; }
+.tip { display: flex; align-items: flex-start; gap: 10px; padding: 12px; margin: 8px 0 12px; border-radius: var(--radius-small);
+  background: var(--accent-soft); border-left: 4px solid var(--accent); font-size: .9rem; animation: tip-in .2s ease-out; }
+.tip > .icon { flex: none; color: var(--accent-text); margin-top: 2px; }
+.tip span { flex: 1; }
+@keyframes tip-in { from { opacity: 0; transform: translateY(-4px); } }
+
+/* first login tour: the hole's huge shadow dims everything around it */
+.tour { position: fixed; inset: 0; z-index: 50; }
+.tour[hidden] { display: none; }
+.tour-hole { position: fixed; border-radius: var(--radius); outline: 3px solid var(--accent); outline-offset: 0;
+  /* a white ring inside the accent one, so it shows on the accent coloured top bar */
+  box-shadow: inset 0 0 0 2px #fff, 0 0 0 9999px rgba(10,14,20,.6); pointer-events: none;
+  transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; }
+.tour-card { position: fixed; width: min(360px, calc(100vw - 32px)); padding: 16px 18px; border-radius: var(--radius);
+  background: var(--surface); color: var(--ink); box-shadow: var(--shadow-big); }
+.tour-card h2 { margin: 2px 0 6px; }
+.tour-card p { margin: 0 0 12px; }
+.tour-card .step { margin: 0; }
+/* small arrow on the card pointing at the outline */
+.tour-card::before { content: ""; position: absolute; left: var(--arrow-x, 50%); width: 14px; height: 14px; margin-left: -7px;
+  background: var(--surface); transform: rotate(45deg); }
+.tour-card[data-arrow="up"]::before { top: -7px; }
+.tour-card[data-arrow="down"]::before { bottom: -7px; }
+.tour-card[data-arrow="none"]::before { display: none; }
+/* one dot per step, the current one is longer */
+.tour-dots { display: flex; gap: 5px; margin: 0 0 12px; }
+.tour-dots i { width: 7px; height: 7px; border-radius: 99px; background: var(--line-strong); transition: width .2s ease; }
+.tour-dots i.on { width: 20px; background: var(--accent); }
+.tour-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tour-foot .btn-ghost { padding: 0 6px; margin-left: -6px; }
+.tour-buttons { display: flex; gap: 8px; }

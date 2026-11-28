@@ -164,11 +164,12 @@ function directionsCard(space) {
   return `
     <header class="sheet-head">
       <div>
-        <h2>Directions to ${space.name}</h2>
+        <h2 class="help-head">Directions to ${space.name} ${helpButton("directions")}</h2>
         <p class="muted" id="walk-status">From ${startPlace().name} · ${walkMins(space)} min walk</p>
       </div>
       ${btn("", { kind: "ghost", icon: "close", href: `#/find/${space.id}`, ariaLabel: "Back to details" })}
     </header>
+    ${helpTip("directions")}
     <div class="progress" aria-hidden="true"><span id="walk-bar" style="width:${walking ? ui.walk.progress * 100 : 0}%"></span></div>
     <div class="actions">
       ${btn(walking ? "Walking…" : "Start Walking (Simulated)", { kind: "primary", icon: "walk", onclick: `startWalk('${space.id}')`, disabled: walking })}
@@ -200,7 +201,8 @@ function reportModal() {
 
   return modalFrame({
     title: `How Busy Is ${space.name}?`,
-    body: `<p class="muted">Pick what you can see right now.</p>
+    body: `<p class="muted help-head">Pick what you can see right now. ${helpButton("report")}</p>
+      ${helpTip("report")}
       <div class="levels">${LEVELS.map((level, index) =>
         `<button class="tile ${ui.report.level === index ? "on" : ""}" aria-pressed="${ui.report.level === index}" onclick="pickLevel(${index})">
           <i class="key-dot stripe-${["green", "green", "amber", "orange", "red"][index]}"></i><span>${level.label}</span>

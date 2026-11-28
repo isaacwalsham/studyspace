@@ -21,8 +21,11 @@ Settings → About → **Reset all app data** starts again from the sign-in scre
 - **Book a Room:** uses the full width of the screen. Pick the number of people and the day along the top, then filter and sort with the same toolbar as Find. Rooms show as cards with their match score and a strip of the day's free times. Picking a room slides the cards to the left and opens a panel on the right with its details and times, where you can book it (on phones the panel slides in over the screen). Confirming shows a summary modal, and Undo is available afterwards
 - **My Bookings:** upcoming bookings with directions and cancel (with undo), plus past bookings with "Book again"
 - **Live busyness:** report how busy a space is, with an optional photo. Every update is checked by a pretend moderator for a few seconds, and the busyness only changes once it's approved. Undo and change work at any point. The photo is only shown on your device and is never saved. You can also ask for an update (a simulated reply arrives)
-- **Settings:** profile picture (initials or an icon, in any colour), display name, accent colour, light/dark/auto theme, simulated location or a chosen starting point (walk times update), larger text, high contrast, reduce motion, filling-up alerts, about, and reset
-- **Design system** (Settings → About → Design system, or `#/design`): every shared button, chip, tag, card, modal, menu, toast and banner, working, with when to use each one
+- **Settings:** profile picture (initials or an icon, in any colour), display name, accent colour, light/dark/auto theme (the accent colours are greyed out while Colour Blind Mode is on, since it picks its own), simulated location or a chosen starting point (walk times update), larger text, high contrast, reduce motion, filling-up alerts, about, and reset
+- **Help:** the FAQ and About Us pages open from a Help section in Settings, not the tabs, so the tab bar keeps to the four main tasks. Settings stays lit in the tabs while you're on them
+- **Page tours:** the first time you open Find, Book a Room, My Bookings or Settings, the screen dims and an outline is drawn around each part in turn, with a card (and a little arrow) saying what it does. Back, Next and Skip, arrow keys and Escape work. Long pages scroll to each part, and on phones Find switches between the list and the map. the Replay the Tours button in Settings → About shows them all again
+- **Help for each task:** booking a room, updating how busy a space is and directions each have a **?** button that opens a short tip. The first time you do each task the tip opens by itself. The ? opens on tap, not hover, so it works on touch screens
+- **Terms and Conditions and Privacy Policy:** linked under Sign In and in Settings → About, and readable before signing in. Laid out like the Physique Pilot legal pages: title, effective and updated dates, a numbered contents list, then numbered sections with lists, a table and highlighted notes. They're made up for the prototype but true about what it does, for example that everything stays in your browser
 
 **Writing style:** titles, buttons and labels use title case ("Book a Room"). Sentences, like descriptions and messages, use sentence case.
 
@@ -62,7 +65,8 @@ For example, a space that's 20% busy, 6 minutes away and updated 3 minutes ago s
 | `js/components.js` | Shared building blocks: buttons, chips, tags, the filter and sort toolbar, modals, menus, toasts, banners |
 | `js/map.js` | Draws the campus map and makes it drag, zoom and respond to taps |
 | `js/routes.js` | Turns the OpenStreetMap footpaths into a graph, leaving out any path inside a building, and finds walking routes with A* search |
-| `js/screens/*.js` | One file per screen: start, find, book, bookings, settings, design |
+| `js/screens/*.js` | One file per screen: start, find, book, bookings, settings, faq, about, legal (terms and privacy). `design.js` is kept but no longer linked or loaded |
+| `js/tour.js` | The page tours and the ? help tips. The tour steps and tips are in `data.js` |
 | | `app.js` also has `flipCards`, which makes cards slide to their new places when the layout changes |
 | `js/app.js` | Picks the screen from the address (e.g. `#/find/lib2`) and holds every button action |
 | `js/map-data.js` | Campus shapes from OpenStreetMap (© OpenStreetMap contributors, ODbL) |

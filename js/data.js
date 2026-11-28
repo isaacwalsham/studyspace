@@ -291,3 +291,158 @@ const ACCENTS = [
 
 // profile picture options
 const AVATAR_ICONS = ["initials", "book", "coffee", "laptop", "headphones", "star", "leaf", "moon"];
+
+// page tours. each page has its own, shown the first time it's opened.
+// target is the part of the screen the outline is drawn around. on find,
+// view is which half to show on phones, as they only show the list or the map
+const TOURS = {
+  find: [
+    { target: ".panel-top", view: "list", title: "Filters and Sort",
+      text: "Tell us what you need, like sockets or quiet, and how far you'll walk. Every filter that's on shows as a chip underneath. Tap one to remove it." },
+    { target: "#find-panel .list-card", view: "list", title: "Your Results",
+      text: "Each space shows how busy it is and its match score out of 100. Best Matches have everything you asked for. Other Spaces, further down, says what each one is missing." },
+    { target: ".map-key", view: "map", title: "The Map",
+      text: "Every open space is a pin on the map, coloured by how busy it is. This key says what each colour means. Tap a pin for details and directions." },
+    { target: "#tabs", view: "list", title: "The Rest of the App",
+      text: "Book a group room, see your bookings, or change your settings, where you'll also find the FAQ. The first time you open each page, we'll show you round it too." },
+  ],
+  book: [
+    { target: '[data-tour="people"]', title: "How Many People",
+      text: "Start with the size of your group. Rooms too small for it are hidden." },
+    { target: '[data-tour="day"]', title: "Pick a Day",
+      text: "Today or any of the next four days. The rooms update to show that day's free times." },
+    { target: '[data-tour="refine"]', title: "Filters and Sort",
+      text: "The same as on Find. Say what the room needs, like a screen, and sort by best match, nearest or most free times." },
+    { target: ".room-card", title: "Rooms",
+      text: "Each room shows its match score, what it has, and a strip of the day's hours with how many are free. Tap a room to pick a time and book it." },
+  ],
+  bookings: [
+    { target: '[data-tour="upcoming"]', title: "Coming Up",
+      text: "Rooms you've booked, soonest first. When you book a room it shows here." },
+    { target: '[data-tour="upcoming"] .booking-actions', title: "Directions and Cancel",
+      text: "Get walking directions to the room, or cancel any time before it starts. Cancelling can be undone." },
+    { target: '[data-tour="past"] .booking', title: "Past Bookings",
+      text: "Rooms you've used before. Book Again opens the same room so you can pick a new time." },
+  ],
+  settings: [
+    { target: '[data-tour="profile"]', title: "Your Profile",
+      text: "Change your picture and the name people see, or sign out." },
+    { target: '[data-tour="appearance"]', title: "Appearance",
+      text: "Pick an accent colour, and a light, dark or automatic theme." },
+    { target: '[data-tour="accessibility"]', title: "Accessibility",
+      text: "Larger text, high contrast, less motion, and colours for colour blindness." },
+    { target: '[data-tour="help"]', title: "Help",
+      text: "Answers to common questions, and about the team who made StudySpace." },
+    { target: '[data-tour="about"]', title: "About",
+      text: "Read the terms and privacy policy, replay these tours, or reset the app to start again." },
+  ],
+};
+
+// short help for each task. opens by itself the first time, then from the ? button
+const TIPS = {
+  book: { title: "Booking a Room",
+    text: "Pick a free time, then press Book This Time. You'll see a summary to check first, and you can undo or cancel it in My Bookings." },
+  report: { title: "Updating How Busy",
+    text: "A moderator checks your update for a few seconds before everyone sees it. You can undo it or change your answer at any point." },
+  directions: { title: "Getting There",
+    text: "The line on the map is the walking route. Press Start Walking to follow it. If the space fills up on the way, we'll suggest a quieter one." },
+};
+
+// terms and privacy, made up for the prototype but true about what it does.
+// laid out like a real legal page: numbered sections, each with any of
+// text (paragraphs), points (a list), table and note (a highlighted box).
+// a point is plain text, or [bold start, rest of the sentence]
+const LEGAL_DATE = "28 November 2026";
+
+const TERMS = [
+  { id: "introduction", title: "Introduction",
+    text: [
+      "These Terms and Conditions (\"Terms\") cover your use of StudySpace (the \"App\"), a prototype made by Group 17 for CMP-6039A Human Computer Interaction at the University of East Anglia (\"we\", \"us\", \"our\").",
+      "By signing in you agree to these Terms and our Privacy Policy. If you don't agree, please don't use the App.",
+    ],
+    note: "StudySpace is a student prototype, not a real UEA service. Busyness, seats and free times are made up, and bookings and updates are pretend." },
+  { id: "definitions", title: "Definitions",
+    points: [
+      ["\"Space\"", "means an open study area anyone can use without booking."],
+      ["\"Room\"", "means a group room or study pod that has to be booked."],
+      ["\"Booking\"", "means one hour in a Room, held for you and your group."],
+      ["\"Update\"", "means a report from you of how busy a Space is right now."],
+    ] },
+  { id: "eligibility", title: "Who Can Use It",
+    text: ["The App is for UEA students and staff. You sign in with your UEA email, ending in @uea.ac.uk."],
+    points: ["In this prototype no account is made and no password is checked.", "Your name in the App is the part of your email before the @, and you can change it in Settings."] },
+  { id: "finding", title: "Finding Spaces",
+    points: [
+      ["Busyness.", "Shown as a word and a colour, from people's Updates. In this prototype it's made up."],
+      ["Match score.", "Out of 100, from free seats, walking time and how recent the busyness is. Each Space shows how its score is worked out."],
+      ["Walk times.", "Follow the campus footpaths, but they're only a guide."],
+    ] },
+  { id: "bookings", title: "Booking Rooms",
+    text: ["You agree to:"],
+    points: [
+      "Only book a Room your group will use",
+      "Cancel in My Bookings if you can't make it, so someone else can use the Room",
+      "Leave the Room on time for the next Booking",
+    ] },
+  { id: "updates", title: "Busyness Updates",
+    points: [
+      ["Be accurate.", "Only report what you can see right now."],
+      ["Photos are optional.", "If you add one, avoid people's faces."],
+      ["Every Update is checked.", "A moderator checks it before anyone sees it, and removes Updates that look wrong. In this prototype the moderator is simulated."],
+    ] },
+  { id: "acceptable-use", title: "Acceptable Use",
+    text: ["You must not:"],
+    points: [
+      "Send false Updates, or lots of Updates to change a Space's busyness",
+      "Book Rooms to stop other people using them",
+      "Try to break, overload or copy the App",
+    ] },
+  { id: "responsibility", title: "Our Responsibility to You",
+    text: ["The App is a prototype for testing ideas. We can't promise a Space will be free or as busy as shown, so please don't rely on it for anything important, like an exam."] },
+  { id: "changes", title: "Changes to These Terms",
+    text: ["We may change these Terms. If we do, the date at the top of this page changes too."] },
+  { id: "contact", title: "Contact Us",
+    text: ["Questions about these Terms go to Group 17, CMP-6039A Human Computer Interaction, University of East Anglia."] },
+];
+
+const PRIVACY = [
+  { id: "introduction", title: "Introduction",
+    text: ["This Privacy Policy explains what StudySpace (the \"App\") keeps about you, where, and how to delete it. The App is a prototype made by Group 17 for CMP-6039A Human Computer Interaction at the University of East Anglia (\"we\", \"us\")."],
+    note: "In this prototype, everything you enter stays in your browser on this device. Nothing is sent to us or anyone else." },
+  { id: "what-we-keep", title: "What We Keep",
+    table: {
+      head: ["What", "Why"],
+      rows: [
+        ["Your UEA email and display name", "To show who's signed in"],
+        ["Your profile picture and colour", "To show on your profile"],
+        ["Your Bookings", "To show them in My Bookings and stop double bookings"],
+        ["Your busyness Updates", "To show them on the Space until they're out of date"],
+        ["Your filters and settings", "So the App stays how you left it"],
+      ],
+    } },
+  { id: "what-we-dont-keep", title: "What We Don't Keep",
+    points: [
+      ["Your password.", "It isn't checked or saved anywhere."],
+      ["Photos.", "A photo you add to an Update is only shown on your screen while you send it, then thrown away."],
+      ["Your real location.", "The App never asks your device where you are."],
+    ] },
+  { id: "where", title: "Where It's Kept",
+    points: [
+      "Only in your browser's storage (localStorage) on this device",
+      "Nothing is sent to a server, so we can't see it",
+      "The map is built into the App from OpenStreetMap data, so opening it doesn't contact any map service",
+    ] },
+  { id: "location", title: "Location",
+    text: ["Location is simulated. Walk times start from the New Science Building, or from the place you pick in Settings → Location."] },
+  { id: "how-long", title: "How Long We Keep It",
+    text: ["Until you delete it. Signing out keeps your Bookings and settings on this device, so they're there when you sign back in."] },
+  { id: "deleting", title: "Deleting Your Data",
+    points: [
+      ["In the App.", "Settings → About → Reset All App Data deletes everything and signs you out. It can't be undone."],
+      ["In your browser.", "Clearing this site's data does the same."],
+    ] },
+  { id: "rights", title: "Your Rights",
+    text: ["If the App became a real UEA service, it would follow UK GDPR. You could then ask to see, correct or delete your data, or object to how it's used, at any time."] },
+  { id: "contact", title: "Contact Us",
+    text: ["Questions about this policy go to Group 17, CMP-6039A Human Computer Interaction, University of East Anglia."] },
+];

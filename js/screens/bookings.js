@@ -6,6 +6,7 @@ function bookingsScreen() {
   return `<section class="page">
     ${pageHead("My Bookings", "Rooms you've booked. You can cancel any time before it starts.")}
 
+    <div data-tour="upcoming">
     <h2>Coming Up ${badge(upcoming.length)}</h2>
     ${upcoming.length ? upcoming.map(b => bookingCard(b, false)).join("")
       : emptyState({
@@ -14,8 +15,9 @@ function bookingsScreen() {
           text: "Book a group room or a study pod, and it'll show here.",
           actions: btn("Book a Room", { kind: "primary", icon: "calendarPlus", href: "#/book" }),
         })}
+    </div>
 
-    ${past.length ? `<h2>Past ${badge(past.length)}</h2>${past.map(b => bookingCard(b, true)).join("")}` : ""}
+    ${past.length ? `<div data-tour="past"><h2>Past ${badge(past.length)}</h2>${past.map(b => bookingCard(b, true)).join("")}</div>` : ""}
   </section>`;
 }
 

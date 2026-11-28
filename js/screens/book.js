@@ -13,15 +13,15 @@ function bookScreen(id) {
     ${pageHead("Book a Room")}
 
     <div class="card controls">
-      <div class="control">
+      <div class="control" data-tour="people">
         <span class="control-label">People</span>
         ${groupStepper()}
       </div>
-      <div class="control control-grow">
+      <div class="control control-grow" data-tour="day">
         <span class="control-label">Day</span>
         ${dayPicker()}
       </div>
-      <div class="control control-tools">
+      <div class="control control-tools" data-tour="refine">
         <span class="control-label">Refine</span>
         ${toolbarButtons("book")}
       </div>
@@ -129,7 +129,8 @@ function roomPanel(room) {
       <h3>Day</h3>
       ${dayPicker()}
 
-      <h3>Time</h3>
+      <h3 class="help-head">Time ${helpButton("book")}</h3>
+      ${helpTip("book")}
       ${tooSmall ? notice("warn", `This room only fits ${room.capacity}. Pick a bigger room or fewer people.`) : ""}
       <div class="slots">${slots}</div>
       <div class="slot-key">

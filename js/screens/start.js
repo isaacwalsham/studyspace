@@ -14,6 +14,8 @@ function signInScreen() {
       </label>
       <p id="sign-in-error" class="error" role="alert" hidden></p>
       ${btn("Sign In", { kind: "primary", wide: true })}
+      <p class="small muted legal-line">By signing in you agree to our <a class="text-link" href="#/terms">Terms and Conditions</a>
+        and <a class="text-link" href="#/privacy">Privacy Policy</a>.</p>
     </form>
   </section>`;
 }
@@ -21,7 +23,7 @@ function signInScreen() {
 // first time setup: needs and walking distance
 function setupScreen() {
   const prefs = data.find;
-  return `<section class="page narrow centre">
+  return `<section class="page setup centre">
     <p class="step">Step 2 of 2</p>
     <h1>What Do You Need From a Study Space?</h1>
     <p class="muted">Pick as many as you like. You can change these any time.</p>
